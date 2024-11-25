@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.media.MediaView?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane fx:id="FrameMedia" prefHeight="178.0" prefWidth="500.0" styleClass="bottom_bar_color" stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.demo1.MediaPlayerController">
+
+   <center>
+      <VBox alignment="CENTER" prefHeight="107.0" prefWidth="447.0" spacing="10">
+         <MediaView fx:id="mediaView" />
+         <Label fx:id="songTitleLabel" prefHeight="27.0" prefWidth="138.0" text="No song loaded" textFill="WHITE">
+            <font>
+               <Font size="18.0" />
+            </font></Label>
+         <HBox alignment="CENTER" spacing="10">
+            <Slider fx:id="progressSlider" prefHeight="14.0" prefWidth="260.0" />
+            <Label fx:id="currentTimeLabel" text="00:00" textFill="WHITE">
+               <font>
+                  <Font size="18.0" />
+               </font></Label>
+            <Label text="//" textFill="WHITE">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Label>
+            <Label fx:id="totalTimeLabel" text="00:00" textFill="WHITE">
+               <font>
+                  <Font size="18.0" />
+               </font></Label>
+            <Button mnemonicParsing="false" prefHeight="35.0" prefWidth="72.0" styleClass="button_media" stylesheets="@css/style.css">
+               <graphic>
+                  <ImageView fitHeight="26.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@imag/love.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+            </Button>
+         </HBox>
+      </VBox>
+   </center>
+
+   <bottom>
+      <HBox alignment="CENTER" prefHeight="71.0" prefWidth="447.0" spacing="10" style="-fx-padding: 10;">
+         <Button fx:id="backButton" onAction="#playPreviousSong" prefHeight="51.0" prefWidth="56.0" styleClass="button_media" stylesheets="@css/style.css">
+            <graphic>
+               <ImageView fitHeight="27.0" fitWidth="34.0" pickOnBounds="true" preserveRatio="true">
+                  <image>
+                     <Image url="@imag/back.png" />
+                  </image>
+               </ImageView>
+            </graphic></Button>
+         <Button fx:id="playPauseButton" onAction="#playPauseSong" styleClass="button_media" stylesheets="@css/style.css">
+            <graphic>
+               <ImageView fx:id="play_pause_icon" fitHeight="27.0" fitWidth="34.0" pickOnBounds="true" preserveRatio="true">
+                  <image>
+                     <Image url="@imag/start.png" />
+                  </image>
+               </ImageView>
+            </graphic></Button>
+
+         <Button fx:id="nextButton" onAction="#playNextSong" styleClass="button_media" stylesheets="@css/style.css">
+            <graphic>
+               <ImageView fitHeight="27.0" fitWidth="43.0" pickOnBounds="true" preserveRatio="true">
+                  <image>
+                     <Image url="@imag/next.png" />
+                  </image>
+               </ImageView>
+            </graphic></Button>
+         <Button fx:id="muteButton" onAction="#toggleMute" styleClass="button_media" stylesheets="@css/style.css">
+            <graphic>
+               <ImageView fitHeight="27.0" fitWidth="34.0" pickOnBounds="true" preserveRatio="true">
+                  <image>
+                     <Image url="@imag/mute.png" />
+                  </image>
+               </ImageView>
+            </graphic></Button>
+         <Label prefHeight="17.0" prefWidth="68.0" text="Volume" textFill="WHITE" />
+         <Slider fx:id="volumeSlider" />
+      </HBox>
+   </bottom>
+</BorderPane>
