@@ -58,6 +58,24 @@ public class LoginController {
         }
     }
 
+
+
+    // Μέθοδος για να διαχειριστεί την επιλογή του checkbox
+    @FXML
+    public void handleShowPassword() {
+        if (check_pass_Login.isSelected()) {
+            // Αν το checkbox είναι επιλεγμένο, εμφανίζουμε τον κωδικό ως κανονικό κείμενο
+
+            text_pass_Login.setPromptText(text_pass_Login.getText());
+            text_pass_Login.setText("");
+        } else {
+            // Αν δεν είναι επιλεγμένο το checkbox, εμφανίζουμε τον κωδικό ως αστερίσκους
+
+            text_pass_Login.setText(text_pass_Login.getPromptText());
+            text_pass_Login.setPromptText("");
+        }
+    }
+
     @FXML
     public void handleCreateAccountButton() {
         try {

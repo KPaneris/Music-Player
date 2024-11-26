@@ -93,3 +93,36 @@
     -fx-opacity: 0; /* Hide horizontal scrollbar */
     -fx-max-height: 0; /* Prevent interaction */
 }
+
+
+/*Midia Player */
+
+.button_media {
+    -fx-background-radius: 50%; /* Στρογγυλό κουμπί */
+    -fx-border-radius: 50%; /* Στρογγυλό περίγραμμα */
+    -fx-padding: 10px; /* Padding για το κουμπί */
+    -fx-background-color: #0c2629; /* Σκούρο φόντο */
+    -fx-border-color: #ffffff; /* Λευκό περίγραμμα */
+    -fx-border-width: 2px;
+    -fx-text-fill: white; /* Λευκό για το κείμενο/εικονίδιο */
+    -fx-font-size: 18px; /* Μέγεθος γραμματοσειράς για το icon */
+    -fx-cursor: hand; /* Αλλαγή δείκτη */
+    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.4), 5, 0.3, 0, 2); /* Ελαφριά λευκή σκιά */
+    -fx-alignment: center;
+}
+
+.button_media:hover {
+    -fx-background-color: #145e63; /* Ελαφρώς φωτεινότερο σκούρο */
+    -fx-border-color: #ffffff; /* Διατήρηση λευκού περιγράμματος */
+    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.6), 8, 0.4, 0, 2); /* Εντονότερη σκιά */
+}
+
+.button_media:pressed {
+    -fx-background-color: #0a1c1e; /* Ακόμα πιο σκούρο όταν πατιέται */
+    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.8), 10, 0.5, 0, 2); /* Ενίσχυση σκιάς */
+    -fx-scale-x: 0.95; /* Μικρή συρρίκνωση */
+    -fx-scale-y: 0.95;
+}
+
+
+

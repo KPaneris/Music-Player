@@ -4,24 +4,35 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 
+import javax.swing.*;
+
 public class CreateAccountController {
 
     @FXML
-    private CheckBox check_pass1_Create_Account;
+
+    public AnchorPane FrameAccountApplication;
     @FXML
-    private PasswordField text_pass2_Create_Account;
+
+    public Button create_account_Button_Page;
     @FXML
-    private AnchorPane FrameAccountApplication;
+
+    public CheckBox check_pass1_Create_Account;
     @FXML
-    private TextField text_user_Create_Account;
+
+    public Button cancel_Button;
     @FXML
-    private PasswordField text_pass1_Create_Account;
+
+    public PasswordField text_pass2;
     @FXML
-    private Button create_account_Button_Page;
+
+    public PasswordField text_pass1;
+
+
     @FXML
-    private Button cancel_Button;
-    @FXML
-    private CheckBox check_pass2_Create_Account;
+
+    public TextField text_Create_Account;
+
+
     @FXML
     private Label error_create_account;
 
@@ -33,9 +44,9 @@ public class CreateAccountController {
 
     @FXML
     public void handleCreateAccountButton() {
-        String username = text_user_Create_Account.getText();
-        String password1 = text_pass1_Create_Account.getText();
-        String password2 = text_pass2_Create_Account.getText();
+        String username = text_Create_Account.getText();
+        String password1 = text_pass1.getText();
+        String password2 = text_pass2.getText();
 
         // Validate input fields
         if (username.isEmpty() || password1.isEmpty() || password2.isEmpty()) {
@@ -68,4 +79,34 @@ public class CreateAccountController {
             e.printStackTrace();
         }
     }
+
+    // Μέθοδος για να διαχειριστεί την επιλογή του checkbox
+    // Μέθοδος για να διαχειριστεί την επιλογή του checkbox
+    @FXML
+    public void handleShowPassword() {
+        if (check_pass1_Create_Account.isSelected()) {
+            // Αν το checkbox είναι επιλεγμένο, εμφανίζουμε τον κωδικό ως κανονικό κείμενο
+
+            text_pass1.setPromptText(text_pass1.getText());
+            text_pass1.setText("");
+
+            text_pass2.setPromptText(text_pass2.getText());
+            text_pass2.setText("");
+        } else {
+            // Αν δεν είναι επιλεγμένο το checkbox, εμφανίζουμε τον κωδικό ως αστερίσκους
+
+            text_pass1.setText(text_pass1.getPromptText());
+            text_pass1.setPromptText("");
+
+            text_pass2.setText(text_pass2.getPromptText());
+            text_pass2.setPromptText("");
+        }
+
+
+
+
+
+
+    }
+
 }
