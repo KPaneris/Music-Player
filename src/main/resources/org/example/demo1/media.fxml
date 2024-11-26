@@ -11,7 +11,7 @@
 <?import javafx.scene.media.MediaView?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane fx:id="FrameMedia" prefHeight="178.0" prefWidth="500.0" styleClass="bottom_bar_color" stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.demo1.MediaPlayerController">
+<BorderPane fx:id="FrameMedia" prefHeight="178.0" prefWidth="500.0" styleClass="bottom_bar_color" stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/21.0.5" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.demo1.MediaPlayerController">
 
    <center>
       <VBox alignment="CENTER" prefHeight="107.0" prefWidth="447.0" spacing="10">

@@ -16,7 +16,7 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="FrameMusicPlayer" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="750.0" styleClass="body-background" stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.demo1.MusicPlayerController">
+<AnchorPane fx:id="FrameMusicPlayer" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="750.0" styleClass="body-background" stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/21.0.5" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.demo1.MusicPlayerController">
    <children>
       <BorderPane prefHeight="600.0" prefWidth="860.0" stylesheets="@css/style.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <top>
@@ -27,7 +27,7 @@
                         <Image url="@imag/music.png" />
                      </image>
                   </ImageView>
-                  <Label layoutX="62.0" layoutY="4.0" prefHeight="35.0" prefWidth="99.0" text="MISIC PLAYER" textFill="WHITE">
+                  <Label layoutX="62.0" layoutY="4.0" prefHeight="35.0" prefWidth="99.0" text="MUSIC PLAYER" textFill="WHITE">
                      <font>
                         <Font size="14.0" />
                      </font></Label>
@@ -110,7 +110,7 @@
                               </ImageView>
                            </graphic>
                         </Button>
-                        <Button fx:id="playlist" layoutX="13.0" layoutY="196.0" mnemonicParsing="false" prefHeight="34.0" prefWidth="38.0" styleClass="button-custom" stylesheets="@css/style.css">
+                        <Button fx:id="playlist" layoutX="13.0" layoutY="196.0" onMouseClicked="#showLastSelectedMetadata" mnemonicParsing="false" prefHeight="34.0" prefWidth="38.0" styleClass="button-custom" stylesheets="@css/style.css">
                            <graphic>
                               <ImageView id="  private Button actionButton;" fitHeight="27.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true">
                                  <image>

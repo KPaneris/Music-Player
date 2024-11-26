@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="FrameAccountApplication" prefHeight="491.0" prefWidth="417.0" styleClass="bottom_bar_color" stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.demo1.CreateAccountController">
+<AnchorPane fx:id="FrameAccountApplication" prefHeight="491.0" prefWidth="417.0" styleClass="bottom_bar_color" stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/21.0.5" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.demo1.CreateAccountController">
    <children>
       <TextField fx:id="text_Create_Account" layoutX="88.0" layoutY="143.0" prefHeight="35.0" prefWidth="187.0" promptText="User Name" styleClass="search-background" stylesheets="@css/style.css" />
       <PasswordField fx:id="text_pass1" layoutX="88.0" layoutY="200.0" prefHeight="35.0" prefWidth="187.0" promptText="Password" styleClass="search-background" stylesheets="@css/style.css" />
