@@ -9,10 +9,7 @@ import javax.swing.*;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
-
+import java.util.*;
 import javafx.stage.Stage;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -36,6 +33,9 @@ public class MusicPlayerController {
     private MediaPlayer mediaPlayer;  // MediaPlayer to handle audio playback
     @FXML
     private MediaView mediaView;  // MediaView to display the audio (optional if you're only focusing on audio)
+    @FXML
+    private PlaylistItem lastSelectedSongMetadata;
+
 
     // Initialize trackMap as an empty HashMap
     private Map<String, String> trackMap = new HashMap<>();
@@ -269,12 +269,29 @@ public class MusicPlayerController {
                     // Call getStreamingUrl to get the actual streaming URL
                     String trackUrl = Audius_Player.getStreamingUrl(trackId); // Use the new getStreamingUrl method
 
+
+                    // Extract metadata for the selected track
+                    String[] splitTrack = selectedTrack.split(" by ");
+                    String title = splitTrack[0];
+                    String artist = splitTrack[1];
+
+                    // Save metadata to lastSelectedSongMetadata
+                    lastSelectedSongMetadata = new PlaylistItem(
+                            title,
+                            artist,
+                            "Unknown Album", // Replace with actual album if available
+                            "Unknown Duration", // Replace with actual duration if available
+                            trackUrl,
+                            "No Thumbnail"); // Replace with actual thumbnail if available
+
+
                     if (trackUrl == null || trackUrl.isEmpty()) {
                         JOptionPane.showMessageDialog(null, "Error: Track URL not found.", "Error", JOptionPane.ERROR_MESSAGE);
                         return;
                     }
 
                     System.out.println("Playing: " + trackUrl);
+                    System.out.println("Metadata stored");
 
                     // Now play the track using the correct streaming URL
                     new Thread(() -> {
@@ -296,4 +313,15 @@ public class MusicPlayerController {
             }
         }
     }
+
+    @FXML
+    private void showLastSelectedMetadata() {
+        if (lastSelectedSongMetadata != null) {
+            System.out.println("Last Selected Song Metadata:\n" + lastSelectedSongMetadata);
+        } else {
+            System.out.println("No song selected.");
+        }
+    }
+
+
 }
