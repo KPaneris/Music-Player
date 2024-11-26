@@ -36,10 +36,16 @@ public class MusicPlayerController {
     @FXML
     private PlaylistItem lastSelectedSongMetadata;
 
+    private MainApp mainApp;
+
+
 
     // Initialize trackMap as an empty HashMap
     private Map<String, String> trackMap = new HashMap<>();
 
+    public void setMainApp(MainApp mainApp) {
+        this.mainApp = mainApp;
+    }
     @FXML
     public void initialize() {
 
@@ -117,10 +123,16 @@ public class MusicPlayerController {
     //xrisi gia log out alla then exei teliosei
     @FXML
     private void handleLogoutAction() {
-        // Κλείνει το παράθυρο του MusicPlayer
+        try {
+            mainApp.showLoginPage(); // Redirect to Login page
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // Close the current MusicPlayer window
         Stage currentStage = (Stage) FrameMusicPlayer.getScene().getWindow();
         currentStage.close();
 
+        // Navigate to the Login Page
 
     }
 
