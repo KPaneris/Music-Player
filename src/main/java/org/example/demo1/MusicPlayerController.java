@@ -275,49 +275,51 @@ public class MusicPlayerController {
     private void handleListClick(MouseEvent event) {
         if (event.getClickCount() == 1) { // Single-click
             String selectedTrack = resultsList.getSelectionModel().getSelectedItem();
+
             if (selectedTrack != null) {
                 String trackId = trackMap.get(selectedTrack); // Retrieve trackId from trackMap
                 if (trackId != null) {
-                    // Call getStreamingUrl to get the actual streaming URL
-                    String trackUrl = Audius_Player.getStreamingUrl(trackId); // Use the new getStreamingUrl method
+                    String trackUrl = Audius_Player.getStreamingUrl(trackId); // Retrieve streaming URL
 
-
-                    // Extract metadata for the selected track
+                    // Extract metadata
                     String[] splitTrack = selectedTrack.split(" by ");
-                    String title = splitTrack[0];
-                    String artist = splitTrack[1];
+                    String title = (splitTrack.length > 0) ? splitTrack[0] : "Unknown Title";
+                    String artist = (splitTrack.length > 1) ? splitTrack[1] : "Unknown Artist";
 
-                    // Save metadata to lastSelectedSongMetadata
                     lastSelectedSongMetadata = new PlaylistItem(
                             title,
                             artist,
-                            "Unknown Album", // Replace with actual album if available
-                            "Unknown Duration", // Replace with actual duration if available
+                            "Unknown Album",
+                            "Unknown Duration",
                             trackUrl,
-                            "No Thumbnail"); // Replace with actual thumbnail if available
-
+                            "No Thumbnail"
+                    );
 
                     if (trackUrl == null || trackUrl.isEmpty()) {
                         JOptionPane.showMessageDialog(null, "Error: Track URL not found.", "Error", JOptionPane.ERROR_MESSAGE);
                         return;
                     }
 
-                    System.out.println("Playing: " + trackUrl);
-                    System.out.println("Metadata stored");
+                    System.out.println("Opening Media Player for: " + title + " by " + artist);
 
-                    // Now play the track using the correct streaming URL
-                    new Thread(() -> {
+                    // Open Media Player
+                    Platform.runLater(() -> {
                         try {
-                            Audius_Player.playAudioFromUrl(trackUrl); // Play the track
+                            MediaPlayerApp mediaPlayerApp = new MediaPlayerApp();
+                            Stage mediaPlayerStage = new Stage(); // Create a new stage for the media player
+                            mediaPlayerApp.start(mediaPlayerStage);
+
+                            // Optionally pass data to the new controller (see below for explanation)
+                            MediaPlayerController controller = (MediaPlayerController) mediaPlayerApp.getController();
+                            controller.initializeTrackData(lastSelectedSongMetadata);
+
                         } catch (Exception e) {
-                            Platform.runLater(() -> {
-                                JOptionPane.showMessageDialog(null, "Error: Unable to play track.", "Error", JOptionPane.ERROR_MESSAGE);
-                            });
+                            JOptionPane.showMessageDialog(null, "Error: Unable to open Media Player.", "Error", JOptionPane.ERROR_MESSAGE);
                             e.printStackTrace();
                         }
-                    }).start();
+                    });
 
-                    // Hide the resultsList after selecting a track
+                    // Hide the resultsList
                     Platform.runLater(() -> resultsList.setVisible(false));
                 } else {
                     JOptionPane.showMessageDialog(null, "Error: Track URL not found.", "Error", JOptionPane.ERROR_MESSAGE);
