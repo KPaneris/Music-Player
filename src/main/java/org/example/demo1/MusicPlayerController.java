@@ -271,6 +271,7 @@ public class MusicPlayerController {
         }).start();
     }
 
+
     @FXML
     private void handleListClick(MouseEvent event) {
         if (event.getClickCount() == 1) { // Single-click
