@@ -28,6 +28,8 @@ public class MusicPlayerController {
     @FXML
     private TextField searchBar; // Input field for search text.
     @FXML
+    private ComboBox<String> searchMode; // Dropdown for search mode
+    @FXML
     private ListView<String> resultsList; // ListView to display search results.
     @FXML
     private MediaPlayer mediaPlayer;  // MediaPlayer to handle audio playback
@@ -80,33 +82,40 @@ public class MusicPlayerController {
         });
 
 
+        // Set default search mode
+        searchMode.setValue("Songs");
+        searchMode.setOnAction(event -> {
+            String selectedMode = searchMode.getValue();
+            System.out.println("Search mode switched to: " + selectedMode);
+        });
+
+
+        // Add Enter key listener for searchBar
+        searchBar.setOnKeyPressed(event -> {
+                    if (event.getCode().equals(javafx.scene.input.KeyCode.ENTER)) {
+                        handleSearch(); // Trigger search on Enter
+                    }
+                });
+
 
         /*XRISI TOU API KAI TIS KLASEIS Audius_Player*/
         // Ensure ListView is interactive
-        resultsList.setVisible(false); // Initially hidden
-        resultsList.setOnMouseClicked(this::handleListClick); // Attach click listener
+        resultsList.setVisible(false);
+        resultsList.setOnMouseClicked(this::handleListClick);
 
-        // Add key event listener to the searchBar
-        searchBar.setOnKeyPressed(event -> {
-            if (event.getCode().equals(javafx.scene.input.KeyCode.ENTER)) {
-                handleSearch(); // Call handleSearch when Enter is pressed
-            }
-        });
-
-        // Show resultsList when clicking on the searchBar
         searchBar.setOnMouseClicked(event -> {
-            resultsList.setVisible(true); // Show the results list when searchBar is clicked
+            resultsList.setVisible(true);
         });
 
         // Hide resultsList when clicking anywhere else in the window
         FrameMusicPlayer.setOnMouseClicked(event -> {
             if (!event.getTarget().equals(searchBar) && !event.getTarget().equals(resultsList)) {
-                resultsList.setVisible(false); // Hide the results list if the click is outside
+                resultsList.setVisible(false);
             }
         });
 
         // Fetch trending tracks when the application starts
-        fetchTrendingTracks();
+        fetchTracks();
 
 
 
@@ -147,179 +156,201 @@ public class MusicPlayerController {
 
     }
 
-    public void fetchTrendingTracks() {
-        // Fetch trending tracks in a separate thread to avoid blocking the UI
+    @FXML
+    private void fetchTracks() {
         new Thread(() -> {
             try {
-                String apiUrl = "https://discoveryprovider.audius.co/v1/tracks/search"; // Ensure this is correct
-                URL url = new URL(apiUrl);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                String apiUrl = "https://audius-discovery-12.cultur3stake.com/v1/tracks/search";
+                HttpURLConnection connection = (HttpURLConnection) new URL(apiUrl).openConnection();
                 connection.setRequestMethod("GET");
                 connection.setRequestProperty("Accept", "application/json");
 
                 int responseCode = connection.getResponseCode();
-                if (responseCode != HttpURLConnection.HTTP_OK) {  // 200 OK
-                    Platform.runLater(() -> {
-                        JOptionPane.showMessageDialog(null, "Error: Received HTTP " + responseCode + " from Audius API.", "Error", JOptionPane.ERROR_MESSAGE);
-                    });
+                if (responseCode != HttpURLConnection.HTTP_OK) {
+                    showErrorMessage("Error: Received HTTP " + responseCode + " from Audius API.");
                     return;
                 }
 
-                // Read the API response
-                Scanner scanner = new Scanner(url.openStream());
-                StringBuilder jsonBuilder = new StringBuilder();
-                while (scanner.hasNext()) {
-                    jsonBuilder.append(scanner.nextLine());
-                }
-                scanner.close();
+                String response = new String(connection.getInputStream().readAllBytes());
+                JSONObject jsonResponse = new JSONObject(response);
+                JSONArray tracks = jsonResponse.getJSONArray("data");
 
-                String response = jsonBuilder.toString();
-                System.out.println("Raw response: " + response);
-
-                if (response.trim().startsWith("{")) {
-                    JSONObject jsonResponse = new JSONObject(response);
-                    JSONArray tracks = jsonResponse.getJSONArray("data");
-
-                    Platform.runLater(() -> {
-                        trackMap.clear(); // Clear previous mappings
-                        for (int i = 0; i < tracks.length(); i++) {
-                            JSONObject track = tracks.getJSONObject(i);
-                            String title = track.getString("title");
-                            String artist = track.getJSONObject("user").getString("name");
-                            String trackId = track.getString("id"); // Extract trackId
-
-                            trackMap.put(title + " by " + artist, trackId); // Store trackId
-                            resultsList.getItems().add(title + " by " + artist);
-                        }
-                        resultsList.setVisible(true); // Display results
-                    });
-                } else {
-                    Platform.runLater(() -> {
-                        JOptionPane.showMessageDialog(null, "Error: Invalid response from API. Response was not JSON.", "Error", JOptionPane.ERROR_MESSAGE);
-                    });
-                }
-            } catch (Exception e) {
                 Platform.runLater(() -> {
-                    JOptionPane.showMessageDialog(null, "Error fetching trending tracks: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    System.out.println("Fetched tracks successfully.");
+                    trackMap.clear();
+                    resultsList.getItems().clear();
+                    for (int i = 0; i < tracks.length(); i++) {
+                        JSONObject track = tracks.getJSONObject(i);
+                        String title = track.getString("title");
+                        String artistName = track.getJSONObject("user").getString("name");
+                        String trackId = track.getString("id");
+
+                        // Use the track_cid as a part of the response or for further URL construction
+                        String trackCid = track.optString("track_cid", null);
+                        if (trackCid != null && !trackCid.isEmpty()) {
+                            String displayText = title + " by " + artistName;
+                            trackMap.put(displayText, trackCid);
+                            resultsList.getItems().add(displayText);
+                        }
+                    }
+                    resultsList.setVisible(true);
                 });
+
+            } catch (Exception e) {
+                showErrorMessage("Error fetching trending tracks: " + e.getMessage());
                 e.printStackTrace();
             }
         }).start();
     }
 
 
+
+
     @FXML
     private void handleSearch() {
-        String query = searchBar.getText(); // Get search text
+        String query = searchBar.getText();
+        String selectedMode = searchMode.getValue();
         if (query == null || query.isEmpty()) {
             resultsList.getItems().clear();
             resultsList.getItems().add("Please enter a search term.");
             return;
         }
 
-        resultsList.getItems().clear(); // Clear old results
+        resultsList.getItems().clear();
         new Thread(() -> {
             try {
-                String apiUrl = "https://discoveryprovider.audius.co/v1/tracks/search?query=" + query;
-                URL url = new URL(apiUrl);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
-                connection.setRequestProperty("Accept", "application/json");
-
-                Scanner scanner = new Scanner(url.openStream());
-                StringBuilder jsonBuilder = new StringBuilder();
-                while (scanner.hasNext()) {
-                    jsonBuilder.append(scanner.nextLine());
-                }
-                scanner.close();
-
-                JSONObject jsonResponse = new JSONObject(jsonBuilder.toString());
-                JSONArray tracks = jsonResponse.getJSONArray("data");
+                String apiUrl = buildApiUrl(query, selectedMode);
+                String response = fetchDataFromApi(apiUrl);
+                JSONObject jsonResponse = new JSONObject(response);
+                JSONArray dataArray = jsonResponse.getJSONArray("data");
 
                 Platform.runLater(() -> {
-                    trackMap.clear(); // Clear previous mappings
-                    for (int i = 0; i < tracks.length(); i++) {
-                        JSONObject track = tracks.getJSONObject(i);
-                        String title = track.getString("title");
-                        String artist = track.getJSONObject("user").getString("name");
-                        String trackId = track.getString("id"); // Extract trackId
-
-                        trackMap.put(title + " by " + artist, trackId);
-                        resultsList.getItems().add(title + " by " + artist);
+                    System.out.println("Search results fetched successfully.");
+                    trackMap.clear();
+                    resultsList.getItems().clear();
+                    for (int i = 0; i < dataArray.length(); i++) {
+                        JSONObject item = dataArray.getJSONObject(i);
+                        String displayText = buildDisplayText(selectedMode, item);
+                        trackMap.put(displayText, item.getString("id"));
+                        resultsList.getItems().add(displayText);
                     }
-                    resultsList.setVisible(true); // Display results
+                    resultsList.setVisible(true);
                 });
 
             } catch (Exception e) {
-                Platform.runLater(() -> {
-                    JOptionPane.showMessageDialog(null, "Error: Unable to fetch search results.", "Error", JOptionPane.ERROR_MESSAGE);
-                });
+                showErrorMessage("Error: Unable to fetch search results.");
                 e.printStackTrace();
             }
         }).start();
     }
 
+
+    private String buildApiUrl(String query, String mode) {
+        String baseUrl = "https://audius-discovery-12.cultur3stake.com/v1/";
+        return switch (mode) {
+            case "Artists" -> baseUrl + "users/search?query=" + query;
+            case "Albums", "Playlists" -> baseUrl + "playlists/search?query=" + query;
+            case "Songs" -> baseUrl + "tracks/search?query=" + query;
+            default -> baseUrl + "tracks/search?query=" + query;
+        };
+    }
+
+    private String fetchDataFromApi(String apiUrl) throws IOException {
+        HttpURLConnection connection = (HttpURLConnection) new URL(apiUrl).openConnection();
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("Accept", "application/json");
+
+        return new String(connection.getInputStream().readAllBytes());
+    }
+
+    private String buildDisplayText(String mode, JSONObject item) {
+        return switch (mode) {
+            case "Artists" -> item.getString("name");
+            case "Albums", "Playlists" -> item.getString("playlist_name") + " by " + item.getJSONObject("user").getString("name");
+            default -> item.getString("title") + " by " + item.getJSONObject("user").getString("name");
+        };
+    }
+
+
+    private void showErrorMessage(String message) {
+        Platform.runLater(() -> {
+            JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
+        });
+    }
+
+
     @FXML
     private void handleListClick(MouseEvent event) {
-        if (event.getClickCount() == 1) { // Single-click
-            String selectedTrack = resultsList.getSelectionModel().getSelectedItem();
-            if (selectedTrack != null) {
-                String trackId = trackMap.get(selectedTrack); // Retrieve trackId from trackMap
-                if (trackId != null) {
-                    // Call getStreamingUrl to get the actual streaming URL
-                    String trackUrl = Audius_Player.getStreamingUrl(trackId); // Use the new getStreamingUrl method
-
-
-                    // Extract metadata for the selected track
-                    String[] splitTrack = selectedTrack.split(" by ");
-                    String title = splitTrack[0];
-                    String artist = splitTrack[1];
-
-                    // Save metadata to lastSelectedSongMetadata
-                    lastSelectedSongMetadata = new PlaylistItem(
-                            title,
-                            artist,
-                            "Unknown Album", // Replace with actual album if available
-                            "Unknown Duration", // Replace with actual duration if available
-                            trackUrl,
-                            "No Thumbnail"); // Replace with actual thumbnail if available
-
-
-                    if (trackUrl == null || trackUrl.isEmpty()) {
-                        JOptionPane.showMessageDialog(null, "Error: Track URL not found.", "Error", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-
-                    System.out.println("Playing: " + trackUrl);
-                    System.out.println("Metadata stored");
-
-                    // Now play the track using the correct streaming URL
-                    new Thread(() -> {
-                        try {
-                            Audius_Player.playAudioFromUrl(trackUrl); // Play the track
-                        } catch (Exception e) {
-                            Platform.runLater(() -> {
-                                JOptionPane.showMessageDialog(null, "Error: Unable to play track.", "Error", JOptionPane.ERROR_MESSAGE);
-                            });
-                            e.printStackTrace();
-                        }
-                    }).start();
-
-                    // Hide the resultsList after selecting a track
-                    Platform.runLater(() -> resultsList.setVisible(false));
-                } else {
-                    JOptionPane.showMessageDialog(null, "Error: Track URL not found.", "Error", JOptionPane.ERROR_MESSAGE);
-                }
+        if (event.getClickCount() == 1) { // Change this to 1 for single-click detection
+            String selectedItem = resultsList.getSelectionModel().getSelectedItem();
+            if (selectedItem != null && trackMap.containsKey(selectedItem)) {
+                System.out.println("Item selected: " + selectedItem);
+                handleItemSelection(selectedItem);
+            } else {
+                System.out.println("No item selected or item not found in trackMap.");
             }
         }
     }
 
+
+
+    @FXML
+    private void handleItemSelection(String selectedItem) {
+        String trackCid = trackMap.get(selectedItem);
+        if (trackCid != null) {
+            System.out.println("Track selected: " + selectedItem);
+            fetchTrackUrl(trackCid);  // Pass the CID directly
+        } else {
+            System.out.println("Track CID not found for selected item: " + selectedItem);
+        }
+    }
+
+
+    @FXML
+    private void fetchTrackUrl(String trackCid) {
+        new Thread(() -> {
+            try {
+                // No change needed here if you already know that the trackCid is what you need.
+                String trackUrl = "https://ipfs.io/ipfs/" + trackCid;
+
+                Platform.runLater(() -> {
+                    if (trackCid != null && !trackCid.isEmpty()) {
+                        playTrack(trackUrl);
+                    } else {
+                        showErrorMessage("Error: No track CID found for the selected track.");
+                    }
+                });
+            } catch (Exception e) {
+                showErrorMessage("Error fetching track URL: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
+
+
+
+
+    private void playTrack(String trackUrl) {
+        try {
+            Media media = new Media(trackUrl);
+            MediaPlayer mediaPlayer = new MediaPlayer(media);
+            mediaPlayer.play();
+        } catch (Exception e) {
+            Platform.runLater(() -> {
+                JOptionPane.showMessageDialog(null, "Error playing track: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            });
+            e.printStackTrace();
+        }
+    }
+
+
     @FXML
     private void showLastSelectedMetadata() {
         if (lastSelectedSongMetadata != null) {
-            System.out.println("Last Selected Song Metadata:\n" + lastSelectedSongMetadata);
+            System.out.println("Last Selected Metadata:\n" + lastSelectedSongMetadata);
         } else {
-            System.out.println("No song selected.");
+            System.out.println("No item selected.");
         }
     }
 

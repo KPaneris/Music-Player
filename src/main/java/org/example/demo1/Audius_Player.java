@@ -55,7 +55,7 @@ public class Audius_Player {
             }
 
             // Step 1: Validate track metadata exists
-            String metadataEndpoint = "https://discoveryprovider.audius.co/v1/tracks/" + trackId;
+            String metadataEndpoint = "https://audius-discovery-12.cultur3stake.com/v1/tracks/" + trackId;
             URL metadataUrl = new URL(metadataEndpoint);
             HttpURLConnection metadataConnection = (HttpURLConnection) metadataUrl.openConnection();
             metadataConnection.setRequestMethod("GET");

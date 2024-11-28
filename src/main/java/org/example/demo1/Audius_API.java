@@ -15,7 +15,7 @@ import java.util.Scanner;
 
 public class Audius_API {
 
-    private static final String BASE_URL = "https://api.audius.co/v1";
+    /*private static final String BASE_URL = "https://api.audius.co/v1";
     private static final String CONTENT_GATEWAY = "https://audius-content-10.cultur3stake.com/content/";
 
     /**
@@ -28,7 +28,7 @@ public class Audius_API {
 
 
 
-    public static Map<String, String> fetchTrendingTracks() throws Exception {
+   /*- public static Map<String, String> fetchTrendingTracks() throws Exception {
         String endpoint = BASE_URL + "/tracks/trending";
         URL url = new URL(endpoint);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -88,7 +88,7 @@ public class Audius_API {
      * @return Map containing track details (e.g., title, artist, streaming URL).
      * @throws Exception If there is an error during the API call or response parsing.
      */
-    public static Map<String, String> fetchTrackById(String trackId) throws Exception {
+    /*public static Map<String, String> fetchTrackById(String trackId) throws Exception {
         String endpoint = BASE_URL + "/tracks/" + trackId;
         URL url = new URL(endpoint);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -128,4 +128,6 @@ public class Audius_API {
             throw new Exception("Failed to fetch track by ID. Response code: " + responseCode);
         }
     }
+    */
+
 }

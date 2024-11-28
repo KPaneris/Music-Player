@@ -16,6 +16,8 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.text.Font?>
 
+<?import javafx.collections.FXCollections?>
+<?import javafx.scene.control.ComboBox?>
 <AnchorPane fx:id="FrameMusicPlayer" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="750.0" styleClass="body-background" stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/21.0.5" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.demo1.MusicPlayerController">
    <children>
       <BorderPane prefHeight="600.0" prefWidth="860.0" stylesheets="@css/style.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
@@ -35,18 +37,35 @@
                      <font>
                         <Font size="14.0" />
                      </font></Label>
-                  <HBox alignment="CENTER" layoutX="232.0" layoutY="21.0" prefHeight="39.0" prefWidth="223.0" styleClass="search-background" stylesheets="@css/style.css">
+                  <HBox alignment="CENTER" layoutX="232.0" layoutY="21.0" prefHeight="39.0" prefWidth="253.0" styleClass="search-background" stylesheets="@css/style.css">
                      <children>
                         <ImageView fitHeight="34.0" fitWidth="33.0" pickOnBounds="true" preserveRatio="true">
                            <image>
                               <Image url="@imag/search.png" />
                            </image>
                         </ImageView>
+                        <TextField fx:id="searchbar" promptText="Search..." styleClass="transparent" stylesheets="@css/style.css" />
+                     </children>
+                  </HBox>
+                  <HBox alignment="CENTER" layoutX="252.0" layoutY="21.0" prefHeight="39.0" prefWidth="200.0" styleClass="search-background" stylesheets="@css/style.css">
+                     <children>
+                        <ComboBox fx:id="searchMode" promptText="Select" prefWidth="100.0">
+                           <items>
+                              <FXCollections fx:factory="observableArrayList">
+                                 <String fx:value="Songs" />
+                                 <String fx:value="Artists" />
+                                 <String fx:value="Albums" />
+                                 <String fx:value="Playlists" />
+                              </FXCollections>
+                           </items>
+                        </ComboBox>
                         <TextField fx:id="searchBar" promptText="Search..." styleClass="transparent" stylesheets="@css/style.css" />
                      </children>
                   </HBox>
-                  <ListView fx:id="resultsList" layoutX="215.0" layoutY="60.0" onMouseClicked="#handleListClick" prefHeight="200.0" prefWidth="300.0" style="-fx-background-color: #003A46; -fx-control-inner-background: #003A46; -fx-border-color: transparent;" visible="false" />
-                  <Button fx:id="mood" layoutX="518.0" layoutY="17.0" mnemonicParsing="false" prefHeight="34.0" prefWidth="38.0" styleClass="button-custom" stylesheets="@css/style.css">
+
+
+                  <ListView fx:id="resultsList" layoutX="215.0" layoutY="60.0" onMouseClicked="#handleSearch" prefHeight="200.0" prefWidth="300.0" style="-fx-background-color: #003A46; -fx-control-inner-background: #003A46; -fx-border-color: transparent;" visible="false" />
+                  <Button fx:id="mood" layoutX="558.0" layoutY="17.0" mnemonicParsing="false" prefHeight="34.0" prefWidth="38.0" styleClass="button-custom" stylesheets="@css/style.css">
                      <graphic>
                         <ImageView fitHeight="27.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true">
                            <image>
@@ -55,7 +74,7 @@
                         </ImageView>
                      </graphic>
                   </Button>
-                  <Button id="  private Button actionButton;" fx:id="settings" layoutX="621.0" layoutY="17.0" mnemonicParsing="false" prefHeight="47.0" prefWidth="73.0" styleClass="button-custom" stylesheets="@css/style.css">
+                  <Button id="  private Button actionButton;" fx:id="settings" layoutX="646.0" layoutY="17.0" mnemonicParsing="false" prefHeight="47.0" prefWidth="73.0" styleClass="button-custom" stylesheets="@css/style.css">
                      <graphic>
                         <ImageView fitHeight="27.0" fitWidth="27.0" pickOnBounds="true" preserveRatio="true">
                            <image>
