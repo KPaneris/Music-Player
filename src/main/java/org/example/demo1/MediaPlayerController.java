@@ -50,8 +50,6 @@ public class MediaPlayerController {
     @FXML
     private Label currentTimeLabel, totalTimeLabel, songTitleLabel;
 
-
-
     private MediaPlayer mediaPlayer;
     private List<File> playlist = new ArrayList<>();
     private int currentSongIndex = 0;
@@ -60,54 +58,34 @@ public class MediaPlayerController {
 
     @FXML
     public void initialize() {
-        // Ρύθμιση προεπιλεγμένης έντασης
-        volumeSlider.setValue(50);
-        mediaPlayer = null; // Αρχικοποίηση του mediaPlayer
-
+        // Initialize the volume slider
+        volumeSlider.setValue(50); // Default volume
         volumeSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (mediaPlayer != null) {
+                // Unbind before setting volume
+                mediaPlayer.volumeProperty().unbind();
                 mediaPlayer.setVolume(newVal.doubleValue() / 100.0);
-
-                // Αυτόματο Mute αν η ένταση είναι 0
-                if (newVal.doubleValue() == 0 && !isMuted) {
-                    toggleMute(true); // Ενεργοποίηση Mute
-                }
-
-                // Αυτόματο Unmute αν αυξηθεί η ένταση από το 0
-                if (newVal.doubleValue() > 0 && isMuted) {
-                    toggleMute(false); // Απενεργοποίηση Mute
-                }
             }
         });
 
-        // Παύση τραγουδιού όταν πατηθεί το slider
+        // Other initializations
         progressSlider.setOnMousePressed(event -> {
             if (mediaPlayer != null && mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
                 mediaPlayer.pause();
             }
         });
 
-        // Μεταφορά στη νέα θέση όταν αφεθεί το slider
         progressSlider.setOnMouseReleased(event -> {
             if (mediaPlayer != null) {
                 double progress = progressSlider.getValue() / 100.0;
                 mediaPlayer.seek(mediaPlayer.getTotalDuration().multiply(progress));
-                mediaPlayer.play(); // Συνεχίζει την αναπαραγωγή από το νέο σημείο
+                mediaPlayer.play();
             }
         });
 
-        // Όταν κινείται το slider, ενημερώνεται η ένδειξη χρόνου
-        progressSlider.setOnMouseDragged(event -> {
-            if (mediaPlayer != null) {
-                double progress = progressSlider.getValue() / 100.0;
-                double newTimeMillis = mediaPlayer.getTotalDuration().toMillis() * progress;
-                currentTimeLabel.setText(formatTime(newTimeMillis));
-            }
-        });
-
-        // Φόρτωσε τα τραγούδια από τον φάκελο resources/music
         loadSongsFromResources();
     }
+
 
     @FXML
     private void loadSongsFromResources() {
@@ -135,6 +113,7 @@ public class MediaPlayerController {
         }
     }
 
+    @FXML
     private void loadSong(File file) {
         if (mediaPlayer != null) {
             mediaPlayer.stop();
@@ -153,32 +132,38 @@ public class MediaPlayerController {
                 updateProgress();
             });
 
-            mediaPlayer.volumeProperty().bind(volumeSlider.valueProperty().divide(100));
-            mediaPlayer.setVolume(volumeSlider.getValue() / 100.0);
-
-            playPauseButton.setText("Play");
+            // Bind volume slider to mediaPlayer volume (if not already bound)
+            if (!mediaPlayer.volumeProperty().isBound()) {
+                mediaPlayer.volumeProperty().bind(volumeSlider.valueProperty().divide(100));
+            }
         });
 
         mediaPlayer.setOnEndOfMedia(this::playNextSong);
     }
 
 
-
     @FXML
     private void playPauseSong() {
         if (mediaPlayer == null) return;
 
-        // Αλλαγή εικόνας ανάλογα με την κατάσταση του mediaPlayer
-        if (mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
-            mediaPlayer.pause();
-            play_pause_icon.setImage(new Image(Objects.requireNonNull(getClass().getResourceAsStream("pause.png")))); // Εικόνα για το pause
-        } else {
-            mediaPlayer.play();
-            play_pause_icon.setImage(new Image(Objects.requireNonNull(getClass().getResourceAsStream("start.png")))); // Εικόνα για το play
+        try {
+            if (mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
+                mediaPlayer.pause();
+                Image pauseImage = new Image(Objects.requireNonNull(
+                        getClass().getResource("/org/example/demo1/imag/start.png").toExternalForm()));
+                play_pause_icon.setImage(pauseImage);
+            } else {
+                mediaPlayer.play();
+                Image playImage = new Image(Objects.requireNonNull(
+                        getClass().getResource("/org/example/demo1/imag/pause.png").toExternalForm()));
+                play_pause_icon.setImage(playImage);
+            }
+        } catch (NullPointerException e) {
+            System.err.println("Resource file not found: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            System.err.println("Invalid URL or resource not found.");
         }
     }
-
-
 
     @FXML
     private void playNextSong() {
@@ -236,5 +221,8 @@ public class MediaPlayerController {
         int seconds = totalSeconds % 60;
 
         return String.format("%02d:%02d", minutes, seconds);
+    }
+
+    public void initializeTrackData(PlaylistItem lastSelectedSongMetadata) {
     }
 }
