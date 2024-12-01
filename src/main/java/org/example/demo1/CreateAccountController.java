@@ -3,6 +3,10 @@ package org.example.demo1;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
 
 import javax.swing.*;
 
@@ -62,12 +66,20 @@ public class CreateAccountController {
         // Simulate account creation logic (e.g., saving to database)
         System.out.println("Account created for username: " + username);
 
-        // Redirect to Login Page
-        try {
-            mainApp.showLoginPage(); // Redirect to login page after account creation
-        } catch (Exception e) {
+        String query = "INSERT INTO users (username, password) VALUES (?, ?)";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, username);
+            stmt.setString(2, password1); // Ιδανικά, κρυπτογράφησε το password
+            stmt.executeUpdate();
+            mainApp.showLoginPage();
+        } catch (SQLException e) {
+            error_create_account.setText("Username already exists!");
             e.printStackTrace();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
+
     }
 
     @FXML
@@ -76,7 +88,7 @@ public class CreateAccountController {
         try {
             mainApp.showLoginPage();
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
