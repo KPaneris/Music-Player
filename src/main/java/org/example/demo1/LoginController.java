@@ -5,6 +5,9 @@ import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import java.util.HashMap;
 import java.util.Map;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 public class LoginController {
 
@@ -58,6 +61,24 @@ public class LoginController {
         }
     }
 
+
+
+    // Μέθοδος για να διαχειριστεί την επιλογή του checkbox
+    @FXML
+    public void handleShowPassword() {
+        if (check_pass_Login.isSelected()) {
+            // Αν το checkbox είναι επιλεγμένο, εμφανίζουμε τον κωδικό ως κανονικό κείμενο
+
+            text_pass_Login.setPromptText(text_pass_Login.getText());
+            text_pass_Login.setText("");
+        } else {
+            // Αν δεν είναι επιλεγμένο το checkbox, εμφανίζουμε τον κωδικό ως αστερίσκους
+
+            text_pass_Login.setText(text_pass_Login.getPromptText());
+            text_pass_Login.setPromptText("");
+        }
+    }
+
     @FXML
     public void handleCreateAccountButton() {
         try {
@@ -67,14 +88,19 @@ public class LoginController {
         }
     }
     @FXML
-    public void initialize() {
-        // Add some users for testing (username, password)
-        users.put("user", "pass");
-        users.put("1", "1");
-    }
+
 
     private boolean isValidCredentials(String username, String password) {
-        // Check if the username exists and the password matches
-        return users.containsKey(username) && users.get(username).equals(password);
+        String query = "SELECT * FROM users WHERE username = ? AND password = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, username);
+            stmt.setString(2, password);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next(); // Επιστρέφει true αν βρεθεί το username και password
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }
