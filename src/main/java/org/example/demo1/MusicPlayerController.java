@@ -30,9 +30,33 @@ public class MusicPlayerController {
     @FXML private MediaPlayer mediaPlayer;
     @FXML private PlaylistItem lastSelectedSongMetadata;
 
+
     private Map<String, ItemInfo> trackMap = new HashMap<>();
 
+    @FXML
+    public Button artist, playlist, mood, settings, love, home,list;
+    @FXML
+    public AnchorPane FrameMusicPlayer;
+    @FXML
+    private TextField searchBar; // Input field for search text.
+    @FXML
+    private ListView<String> resultsList; // ListView to display search results.
+    @FXML
+    private MediaPlayer mediaPlayer;  // MediaPlayer to handle audio playback
+    @FXML
+    private MediaView mediaView;  // MediaView to display the audio (optional if you're only focusing on audio)
+    @FXML
+    private PlaylistItem lastSelectedSongMetadata;
 
+    private MainApp mainApp;
+
+
+
+
+
+    public void setMainApp(MainApp mainApp) {
+        this.mainApp = mainApp;
+    }
     @FXML
     public void initialize() {
         configureTooltips();
@@ -80,6 +104,37 @@ public class MusicPlayerController {
                 resultsList.setVisible(false);
             }
         });
+
+
+
+        // Fetch trending tracks when the application starts
+        fetchTrendingTracks();
+
+
+
+        /*XRISI TOU API KAI TIS KLASEIS Audius_Player*/
+    }
+
+
+    @FXML
+    private void handleLogoutAction() {
+        try {
+            // Navigate to the login page
+            mainApp.showLoginPage();
+
+            // Close the current window if it exists
+            Stage currentStage = null;
+            if (FrameMusicPlayer != null && FrameMusicPlayer.getScene() != null) {
+                currentStage = (Stage) FrameMusicPlayer.getScene().getWindow();
+            }
+
+            if (currentStage != null) {
+                currentStage.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     private void configureSettingsMenu() {
@@ -187,8 +242,10 @@ public class MusicPlayerController {
         });
     }
 
+
     @FXML
     private void handleListClick(MouseEvent event) {
+
         if (event.getClickCount() == 1) {
             String selectedItem = resultsList.getSelectionModel().getSelectedItem();
             if (selectedItem != null) {
@@ -200,6 +257,33 @@ public class MusicPlayerController {
                     } else {
                         // Handle other item types (e.g., fetch details)
                         handleItemSelection(selectedItem, selectedItemInfo);
+
+        if (event.getClickCount() == 1) { // Single-click
+            String selectedTrack = resultsList.getSelectionModel().getSelectedItem();
+
+            if (selectedTrack != null) {
+                String trackId = trackMap.get(selectedTrack); // Retrieve trackId from trackMap
+                if (trackId != null) {
+                    String trackUrl = Audius_Player.getStreamingUrl(trackId); // Retrieve streaming URL
+
+                    // Extract metadata
+                    String[] splitTrack = selectedTrack.split(" by ");
+                    String title = (splitTrack.length > 0) ? splitTrack[0] : "Unknown Title";
+                    String artist = (splitTrack.length > 1) ? splitTrack[1] : "Unknown Artist";
+
+                    lastSelectedSongMetadata = new PlaylistItem(
+                            title,
+                            artist,
+                            "Unknown Album",
+                            "Unknown Duration",
+                            trackUrl,
+                            "No Thumbnail"
+                    );
+
+                    if (trackUrl == null || trackUrl.isEmpty()) {
+                        JOptionPane.showMessageDialog(null, "Error: Track URL not found.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+
                     }
                 }
             }
@@ -237,6 +321,7 @@ public class MusicPlayerController {
         public String getCid() { return cid; }
         public String getTrackUrl() { return trackUrl; }
     }
+
 
     private String buildDisplayText(String mode, JSONObject item) {
         return switch (mode) {
@@ -291,6 +376,14 @@ public class MusicPlayerController {
                     Platform.runLater(() -> {
                         System.out.println(type + " details:\n" + details.toString(2)); // Pretty print JSON with indentation
                     });
+
+                    System.out.println("Opening Media Player for: " + title + " by " + artist);
+
+
+
+                    // Hide the resultsList
+                    Platform.runLater(() -> resultsList.setVisible(false));
+
                 } else {
                     showErrorMessage("Error: No response from the " + type + " details API.");
                 }
@@ -322,5 +415,6 @@ public class MusicPlayerController {
             System.out.println("No item selected.");
         }
     }
+
 
 }

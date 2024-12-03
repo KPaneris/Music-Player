@@ -19,6 +19,8 @@ module org.example.demo1 {
     requires google.api.client;
     requires jlayer;
     requires javafx.media;
+    requires java.sql;
+    requires mysql.connector.j;
 
     opens org.example.demo1 to javafx.fxml;
     exports org.example.demo1;

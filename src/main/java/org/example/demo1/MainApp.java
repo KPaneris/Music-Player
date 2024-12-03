@@ -46,8 +46,9 @@ public class MainApp extends Application {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("MusicPlayer.fxml"));
         Parent root = loader.load();
 
+// Get the controller and pass the MainApp instance
         MusicPlayerController musicPlayerController = loader.getController();
-        //musicPlayerController.setMainApp(this); // Pass the MainApp instance
+        musicPlayerController.setMainApp(this); // Pass the MainApp instance
 
 
         primaryStage.setScene(new Scene(root));
