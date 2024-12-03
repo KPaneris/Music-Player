@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 
 public class LoginController {
 
+    public TextField visible_pass_Login;
     @FXML
     private AnchorPane FrameLogin;
 
@@ -35,15 +36,16 @@ public class LoginController {
     private MainApp mainApp;
 
     private Map<String, String> users = new HashMap<>();
+
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
     }
 
     @FXML
     public void handleLoginButton() {
-        // Retrieve username and password
+
         String username = TextField_Username.getText();
-        String password = text_pass_Login.getText();
+        String password = check_pass_Login.isSelected() ? visible_pass_Login.getText() : text_pass_Login.getText();
 
         // Debugging: Print to console
         System.out.println("Entered Username: " + username);
@@ -52,7 +54,7 @@ public class LoginController {
         // Validate credentials
         if (isValidCredentials(username, password)) {
             try {
-                mainApp.showMusicPlayerPage(); // Navigate to Music Player Page
+                mainApp.showMusicPlayerPage(); // Navigate to music player
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -61,23 +63,22 @@ public class LoginController {
         }
     }
 
-
-
     // Μέθοδος για να διαχειριστεί την επιλογή του checkbox
     @FXML
     public void handleShowPassword() {
         if (check_pass_Login.isSelected()) {
-            // Αν το checkbox είναι επιλεγμένο, εμφανίζουμε τον κωδικό ως κανονικό κείμενο
-
-            text_pass_Login.setPromptText(text_pass_Login.getText());
-            text_pass_Login.setText("");
+            // Show password
+            visible_pass_Login.setText(text_pass_Login.getText());
+            visible_pass_Login.setVisible(true);
+            text_pass_Login.setVisible(false);
         } else {
-            // Αν δεν είναι επιλεγμένο το checkbox, εμφανίζουμε τον κωδικό ως αστερίσκους
-
-            text_pass_Login.setText(text_pass_Login.getPromptText());
-            text_pass_Login.setPromptText("");
+            // Hide password
+            text_pass_Login.setText(visible_pass_Login.getText());
+            text_pass_Login.setVisible(true);
+            visible_pass_Login.setVisible(false);
         }
     }
+
 
     @FXML
     public void handleCreateAccountButton() {
@@ -87,6 +88,7 @@ public class LoginController {
             e.printStackTrace();
         }
     }
+
     @FXML
 
 
