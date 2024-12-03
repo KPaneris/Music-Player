@@ -14,6 +14,8 @@
    <children>
       <TextField fx:id="TextField_Username" layoutX="118.0" layoutY="193.0" prefHeight="35.0" prefWidth="187.0" promptText="User Name" styleClass="search-background" stylesheets="@css/style.css" />
       <PasswordField fx:id="text_pass_Login" layoutX="118.0" layoutY="250.0" prefHeight="35.0" prefWidth="187.0" promptText="Password" styleClass="search-background" stylesheets="@css/style.css" />
+      <TextField fx:id="visible_pass_Login" layoutX="118.0" layoutY="250.0" prefHeight="35.0" prefWidth="187.0" promptText="Password" styleClass="search-background" stylesheets="@css/style.css" visible="false" />
+
       <ImageView fitHeight="35.0" fitWidth="45.0" layoutX="54.0" layoutY="193.0" pickOnBounds="true" preserveRatio="true">
          <image>
             <Image url="@imag/user.png" />

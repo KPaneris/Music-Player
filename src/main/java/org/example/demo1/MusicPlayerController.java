@@ -120,20 +120,24 @@ public class MusicPlayerController {
     }
 
 
-    //xrisi gia log out alla then exei teliosei
     @FXML
     private void handleLogoutAction() {
         try {
-            mainApp.showLoginPage(); // Redirect to Login page
+            // Navigate to the login page
+            mainApp.showLoginPage();
+
+            // Close the current window if it exists
+            Stage currentStage = null;
+            if (FrameMusicPlayer != null && FrameMusicPlayer.getScene() != null) {
+                currentStage = (Stage) FrameMusicPlayer.getScene().getWindow();
+            }
+
+            if (currentStage != null) {
+                currentStage.close();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // Close the current MusicPlayer window
-        Stage currentStage = (Stage) FrameMusicPlayer.getScene().getWindow();
-        currentStage.close();
-
-        // Navigate to the Login Page
-
     }
 
     //einai gia na emfanizonte i simasia ton koumpion sto Music Player

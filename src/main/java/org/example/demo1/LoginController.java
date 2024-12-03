@@ -36,7 +36,6 @@ public class LoginController {
     private MainApp mainApp;
 
     private Map<String, String> users = new HashMap<>();
-
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
     }
@@ -88,7 +87,6 @@ public class LoginController {
             e.printStackTrace();
         }
     }
-
     @FXML
 
 

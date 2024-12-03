@@ -1,4 +1,3 @@
-
 package org.example.demo1;
 
 import javafx.fxml.FXML;
@@ -6,9 +5,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-
 import java.sql.ResultSet;
-
 import java.sql.SQLException;
 
 
@@ -70,14 +67,11 @@ public class CreateAccountController {
             return;
         }
 
-
         // Insert the new user into the database
-
         String query = "INSERT INTO users (username, password) VALUES (?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, username);
-
             stmt.setString(2, password1); // Consider encrypting the password
             stmt.executeUpdate();
             mainApp.showLoginPage(); // Navigate to the login page
@@ -99,18 +93,7 @@ public class CreateAccountController {
         } catch (SQLException e) {
             e.printStackTrace();
             return true; // Assume the username is taken if there's an error
-
-            stmt.setString(2, password1); // Ιδανικά, κρυπτογράφησε το password
-            stmt.executeUpdate();
-            mainApp.showLoginPage();
-        } catch (SQLException e) {
-            error_create_account.setText("Username already exists!");
-            e.printStackTrace();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-
         }
-
     }
 
 
@@ -123,7 +106,6 @@ public class CreateAccountController {
             throw new RuntimeException(e);
         }
     }
-
     // Μέθοδος για να διαχειριστεί την επιλογή του checkbox
     @FXML
     public void handleShowPassword() {
