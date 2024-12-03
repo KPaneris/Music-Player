@@ -307,22 +307,7 @@ public class MusicPlayerController {
 
                     System.out.println("Opening Media Player for: " + title + " by " + artist);
 
-                    // Open Media Player
-                    Platform.runLater(() -> {
-                        try {
-                            MediaPlayerApp mediaPlayerApp = new MediaPlayerApp();
-                            Stage mediaPlayerStage = new Stage(); // Create a new stage for the media player
-                            mediaPlayerApp.start(mediaPlayerStage);
 
-                            // Optionally pass data to the new controller (see below for explanation)
-                            MediaPlayerController controller = (MediaPlayerController) mediaPlayerApp.getController();
-                            controller.initializeTrackData(lastSelectedSongMetadata);
-
-                        } catch (Exception e) {
-                            JOptionPane.showMessageDialog(null, "Error: Unable to open Media Player.", "Error", JOptionPane.ERROR_MESSAGE);
-                            e.printStackTrace();
-                        }
-                    });
 
                     // Hide the resultsList
                     Platform.runLater(() -> resultsList.setVisible(false));
