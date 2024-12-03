@@ -38,10 +38,16 @@ public class MusicPlayerController {
     @FXML
     private PlaylistItem lastSelectedSongMetadata;
 
+    private MainApp mainApp;
+
+
 
     // Initialize trackMap as an empty HashMap
     private Map<String, String> trackMap = new HashMap<>();
 
+    public void setMainApp(MainApp mainApp) {
+        this.mainApp = mainApp;
+    }
     @FXML
     public void initialize() {
 
@@ -123,14 +129,24 @@ public class MusicPlayerController {
     }
 
 
-    //xrisi gia log out alla then exei teliosei
     @FXML
     private void handleLogoutAction() {
-        // Κλείνει το παράθυρο του MusicPlayer
-        Stage currentStage = (Stage) FrameMusicPlayer.getScene().getWindow();
-        currentStage.close();
+        try {
+            // Navigate to the login page
+            mainApp.showLoginPage();
 
+            // Close the current window if it exists
+            Stage currentStage = null;
+            if (FrameMusicPlayer != null && FrameMusicPlayer.getScene() != null) {
+                currentStage = (Stage) FrameMusicPlayer.getScene().getWindow();
+            }
 
+            if (currentStage != null) {
+                currentStage.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     //einai gia na emfanizonte i simasia ton koumpion sto Music Player
@@ -245,6 +261,7 @@ public class MusicPlayerController {
     }
 
 
+
     private String buildApiUrl(String query, String mode) {
         String baseUrl = "https://audius-discovery-12.cultur3stake.com/v1/";
         return switch (mode) {
@@ -323,6 +340,46 @@ public class MusicPlayerController {
             } catch (Exception e) {
                 showErrorMessage("Error fetching track URL: " + e.getMessage());
                 e.printStackTrace();
+
+    @FXML
+    private void handleListClick(MouseEvent event) {
+        if (event.getClickCount() == 1) { // Single-click
+            String selectedTrack = resultsList.getSelectionModel().getSelectedItem();
+
+            if (selectedTrack != null) {
+                String trackId = trackMap.get(selectedTrack); // Retrieve trackId from trackMap
+                if (trackId != null) {
+                    String trackUrl = Audius_Player.getStreamingUrl(trackId); // Retrieve streaming URL
+
+                    // Extract metadata
+                    String[] splitTrack = selectedTrack.split(" by ");
+                    String title = (splitTrack.length > 0) ? splitTrack[0] : "Unknown Title";
+                    String artist = (splitTrack.length > 1) ? splitTrack[1] : "Unknown Artist";
+
+                    lastSelectedSongMetadata = new PlaylistItem(
+                            title,
+                            artist,
+                            "Unknown Album",
+                            "Unknown Duration",
+                            trackUrl,
+                            "No Thumbnail"
+                    );
+
+                    if (trackUrl == null || trackUrl.isEmpty()) {
+                        JOptionPane.showMessageDialog(null, "Error: Track URL not found.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    System.out.println("Opening Media Player for: " + title + " by " + artist);
+
+
+
+                    // Hide the resultsList
+                    Platform.runLater(() -> resultsList.setVisible(false));
+                } else {
+                    JOptionPane.showMessageDialog(null, "Error: Track URL not found.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+
             }
         }).start();
     }

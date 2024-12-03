@@ -3,6 +3,11 @@ package org.example.demo1;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 
 import javax.swing.*;
 
@@ -27,15 +32,13 @@ public class CreateAccountController {
 
     public PasswordField text_pass1;
 
-
     @FXML
-
     public TextField text_Create_Account;
-
+    public TextField visible_pass1;
+    public TextField visible_pass2;
 
     @FXML
     private Label error_create_account;
-
     private MainApp mainApp;
 
     public void setMainApp(MainApp mainApp) {
@@ -59,16 +62,40 @@ public class CreateAccountController {
             return;
         }
 
-        // Simulate account creation logic (e.g., saving to database)
-        System.out.println("Account created for username: " + username);
+        if (isUsernameTaken(username)) {
+            error_create_account.setText("Username already exists!");
+            return;
+        }
 
-        // Redirect to Login Page
-        try {
-            mainApp.showLoginPage(); // Redirect to login page after account creation
-        } catch (Exception e) {
+        // Insert the new user into the database
+        String query = "INSERT INTO users (username, password) VALUES (?, ?)";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, username);
+            stmt.setString(2, password1); // Consider encrypting the password
+            stmt.executeUpdate();
+            mainApp.showLoginPage(); // Navigate to the login page
+        } catch (SQLException e) {
+            error_create_account.setText("An error occurred while creating the account.");
             e.printStackTrace();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
+
+    private boolean isUsernameTaken(String username) {
+        String query = "SELECT 1 FROM users WHERE username = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next(); // If a result exists, the username is already taken
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return true; // Assume the username is taken if there's an error
+        }
+    }
+
 
     @FXML
     public void handleCancelButton() {
@@ -76,37 +103,28 @@ public class CreateAccountController {
         try {
             mainApp.showLoginPage();
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
-
-    // Μέθοδος για να διαχειριστεί την επιλογή του checkbox
     // Μέθοδος για να διαχειριστεί την επιλογή του checkbox
     @FXML
     public void handleShowPassword() {
         if (check_pass1_Create_Account.isSelected()) {
-            // Αν το checkbox είναι επιλεγμένο, εμφανίζουμε τον κωδικό ως κανονικό κείμενο
-
-            text_pass1.setPromptText(text_pass1.getText());
-            text_pass1.setText("");
-
-            text_pass2.setPromptText(text_pass2.getText());
-            text_pass2.setText("");
+            // Show passwords
+            visible_pass1.setText(text_pass1.getText());
+            visible_pass2.setText(text_pass2.getText());
+            visible_pass1.setVisible(true);
+            text_pass1.setVisible(false);
+            visible_pass2.setVisible(true);
+            text_pass2.setVisible(false);
         } else {
-            // Αν δεν είναι επιλεγμένο το checkbox, εμφανίζουμε τον κωδικό ως αστερίσκους
-
-            text_pass1.setText(text_pass1.getPromptText());
-            text_pass1.setPromptText("");
-
-            text_pass2.setText(text_pass2.getPromptText());
-            text_pass2.setPromptText("");
+            // Hide passwords
+            text_pass1.setText(visible_pass1.getText());
+            text_pass2.setText(visible_pass2.getText());
+            text_pass1.setVisible(true);
+            visible_pass1.setVisible(false);
+            text_pass2.setVisible(true);
+            visible_pass2.setVisible(false);
         }
-
-
-
-
-
-
     }
-
 }
