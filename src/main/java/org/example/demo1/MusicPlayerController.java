@@ -42,6 +42,7 @@ public class MusicPlayerController {
         configureTooltips();
         configureSearchBar();
         configureResultsList();
+        configureSettingsMenu();
         resultsList.getItems().clear(); // Clear results initially
         resultsList.setVisible(false); // Ensure no results are displayed at startup
     }
@@ -98,6 +99,22 @@ public class MusicPlayerController {
             }
         });
     }
+
+    private void configureSettingsMenu() {
+        ContextMenu settingsMenu = new ContextMenu();
+        MenuItem logoutItem = new MenuItem("Log Out");
+
+        logoutItem.setOnAction(event -> handleLogoutAction());
+
+        settingsMenu.getItems().add(logoutItem);
+
+        settings.setOnMouseClicked(event -> {
+            if (event.getButton().equals(javafx.scene.input.MouseButton.PRIMARY)) {
+                settingsMenu.show(settings, event.getScreenX(), event.getScreenY());
+            }
+        });
+    }
+
 
     @FXML
     private void handleLogoutAction() {
