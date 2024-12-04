@@ -14,7 +14,7 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ApiExample {
+public class YoutubeAPIexample {
     private static final String DEVELOPER_KEY = "AIzaSyDo_hvRUaEP50f9nSOjLQvjWUt3zU7fo20";
     private static final String APPLICATION_NAME = "MusicPlayerProject";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();

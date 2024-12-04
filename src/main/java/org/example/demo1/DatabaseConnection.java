@@ -1,5 +1,3 @@
-
-
 package org.example.demo1;
 
 import java.sql.Connection;
