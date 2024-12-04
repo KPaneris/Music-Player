@@ -31,13 +31,12 @@ public class MusicPlayerController {
     @FXML private PlaylistItem lastSelectedSongMetadata;
     private MainApp mainApp;
 
-
+  
     private Map<String, ItemInfo> trackMap = new HashMap<>();
 
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
     }
-
     @FXML
     public void initialize() {
         configureTooltips();
@@ -363,6 +362,7 @@ public class MusicPlayerController {
     private void fetchPlaylistDetails(String playlistId) {
         String apiUrl = "https://audius-discovery-12.cultur3stake.com/v1/playlists/" + playlistId;
         fetchDetails(apiUrl, "Playlist");
+
     }
 
     @FXML

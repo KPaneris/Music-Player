@@ -18,6 +18,7 @@
 <?import javafx.collections.FXCollections?>
 <?import javafx.scene.control.ComboBox?>
 <AnchorPane fx:id="FrameMusicPlayer" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="750.0" styleClass="body-background" stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/21.0.5" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.demo1.MusicPlayerController">
+
    <children>
       <BorderPane prefHeight="600.0" prefWidth="860.0" stylesheets="@css/style.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <top>
@@ -82,7 +83,15 @@
                         </ImageView>
                      </graphic>
                   </Button>
+
+
+
+
+
+
                </children>
+
+
             </Pane>
          </top>
          <left>
@@ -155,12 +164,28 @@
                </children>
             </Pane>
          </left>
-         <bottom>
-            <Pane prefHeight="80.0" prefWidth="750.0" stylesheets="@css/style.css" BorderPane.alignment="CENTER" />
-         </bottom>
          <center>
             <Pane prefHeight="335.0" prefWidth="617.0" visible="false" BorderPane.alignment="CENTER" />
          </center>
+         <bottom>
+
+
+
+
+            <Pane fx:id="Media_PLayer" prefHeight="185.0" prefWidth="800.0" BorderPane.alignment="CENTER" />
+
+            <!-- Εδώ ενσωματώνουμε το media.fxml -->
+            <fx:include fx:id="mediaPane" source="media.fxml" />
+
+
+
+
+         </bottom>
+         <center>
+            <Pane prefHeight="335.0" prefWidth="617.0" BorderPane.alignment="CENTER" />
+         </center>
+
+
       </BorderPane>
    </children>
 </AnchorPane>

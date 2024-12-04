@@ -5,9 +5,13 @@ import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import java.util.HashMap;
 import java.util.Map;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 public class LoginController {
 
+    public TextField visible_pass_Login;
     @FXML
     private AnchorPane FrameLogin;
 
@@ -38,9 +42,9 @@ public class LoginController {
 
     @FXML
     public void handleLoginButton() {
-        // Retrieve username and password
+
         String username = TextField_Username.getText();
-        String password = text_pass_Login.getText();
+        String password = check_pass_Login.isSelected() ? visible_pass_Login.getText() : text_pass_Login.getText();
 
         // Debugging: Print to console
         System.out.println("Entered Username: " + username);
@@ -49,7 +53,7 @@ public class LoginController {
         // Validate credentials
         if (isValidCredentials(username, password)) {
             try {
-                mainApp.showMusicPlayerPage(); // Navigate to Music Player Page
+                mainApp.showMusicPlayerPage(); // Navigate to music player
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -58,23 +62,22 @@ public class LoginController {
         }
     }
 
-
-
     // Μέθοδος για να διαχειριστεί την επιλογή του checkbox
     @FXML
     public void handleShowPassword() {
         if (check_pass_Login.isSelected()) {
-            // Αν το checkbox είναι επιλεγμένο, εμφανίζουμε τον κωδικό ως κανονικό κείμενο
-
-            text_pass_Login.setPromptText(text_pass_Login.getText());
-            text_pass_Login.setText("");
+            // Show password
+            visible_pass_Login.setText(text_pass_Login.getText());
+            visible_pass_Login.setVisible(true);
+            text_pass_Login.setVisible(false);
         } else {
-            // Αν δεν είναι επιλεγμένο το checkbox, εμφανίζουμε τον κωδικό ως αστερίσκους
-
-            text_pass_Login.setText(text_pass_Login.getPromptText());
-            text_pass_Login.setPromptText("");
+            // Hide password
+            text_pass_Login.setText(visible_pass_Login.getText());
+            text_pass_Login.setVisible(true);
+            visible_pass_Login.setVisible(false);
         }
     }
+
 
     @FXML
     public void handleCreateAccountButton() {
@@ -85,14 +88,19 @@ public class LoginController {
         }
     }
     @FXML
-    public void initialize() {
-        // Add some users for testing (username, password)
-        users.put("user", "pass");
-        users.put("1", "1");
-    }
+
 
     private boolean isValidCredentials(String username, String password) {
-        // Check if the username exists and the password matches
-        return users.containsKey(username) && users.get(username).equals(password);
+        String query = "SELECT * FROM users WHERE username = ? AND password = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, username);
+            stmt.setString(2, password);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next(); // Επιστρέφει true αν βρεθεί το username και password
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }
