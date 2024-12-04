@@ -29,15 +29,20 @@ public class MusicPlayerController {
     @FXML private ListView<String> resultsList;
     @FXML private MediaPlayer mediaPlayer;
     @FXML private PlaylistItem lastSelectedSongMetadata;
+    private MainApp mainApp;
 
 
     private Map<String, ItemInfo> trackMap = new HashMap<>();
 
+    public void setMainApp(MainApp mainApp) {
+        this.mainApp = mainApp;
+    }
+
+    @FXML
     public void initialize() {
         configureTooltips();
         configureSearchBar();
         configureResultsList();
-        configureSettingsMenu();
         resultsList.getItems().clear(); // Clear results initially
         resultsList.setVisible(false); // Ensure no results are displayed at startup
     }
@@ -95,12 +100,24 @@ public class MusicPlayerController {
         });
     }
 
-    private void configureSettingsMenu() {
-        // Example implementation, adjust as needed                              //empty, need fixing
-        settings.setOnAction(event -> {
-            System.out.println("update code here");
-            // Add your settings menu logic here
-        });
+    @FXML
+    private void handleLogoutAction() {
+        try {
+            // Navigate to the login page
+            mainApp.showLoginPage();
+
+            // Close the current window if it exists
+            Stage currentStage = null;
+            if (FrameMusicPlayer != null && FrameMusicPlayer.getScene() != null) {
+                currentStage = (Stage) FrameMusicPlayer.getScene().getWindow();
+            }
+
+            if (currentStage != null) {
+                currentStage.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void updateSearchResultsWithStreamUrl(JSONArray dataArray, String mode) {

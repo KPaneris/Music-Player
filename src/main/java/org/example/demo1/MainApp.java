@@ -47,7 +47,7 @@ public class MainApp extends Application {
         Parent root = loader.load();
 
         MusicPlayerController musicPlayerController = loader.getController();
-        //musicPlayerController.setMainApp(this); // Pass the MainApp instance
+        musicPlayerController.setMainApp(this); // Pass the MainApp instance
 
 
         primaryStage.setScene(new Scene(root));
