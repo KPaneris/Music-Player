@@ -12,7 +12,6 @@ import javafx.stage.Stage;
 import org.example.demo1.utils.ApiClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
 import javax.swing.*;
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -29,9 +28,8 @@ public class MusicPlayerController {
     @FXML private ListView<String> resultsList;
     @FXML private MediaPlayer mediaPlayer;
     @FXML private PlaylistItem lastSelectedSongMetadata;
-    private MainApp mainApp;
 
-  
+    private MainApp mainApp;
     private Map<String, ItemInfo> trackMap = new HashMap<>();
 
     public void setMainApp(MainApp mainApp) {
@@ -46,7 +44,6 @@ public class MusicPlayerController {
         resultsList.getItems().clear(); // Clear results initially
         resultsList.setVisible(false); // Ensure no results are displayed at startup
     }
-
 
     private void configureTooltips() {
         setTooltipWithDelay(list, "Categories");
@@ -115,7 +112,6 @@ public class MusicPlayerController {
         });
     }
 
-
     @FXML
     private void handleLogoutAction() {
         try {
@@ -179,7 +175,6 @@ public class MusicPlayerController {
         resultsList.setVisible(true);
     }
 
-
     private String buildApiUrl(String query, String mode) {
         String baseUrl = "https://audius-discovery-12.cultur3stake.com/v1/";
         String apiUrl = switch (mode) {
@@ -197,7 +192,6 @@ public class MusicPlayerController {
         System.out.println("Generated API URL: " + apiUrl);
         return apiUrl;
     }
-
 
     @FXML
     private void handleSearch() {
@@ -234,7 +228,6 @@ public class MusicPlayerController {
             }
         }).start();
     }
-
 
     private void playStreamUrl(String streamUrl) {
         Platform.runLater(() -> {                                                   //javafx ui connection here
@@ -273,8 +266,6 @@ public class MusicPlayerController {
             JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
         });
     }
-
-
 
     private HttpURLConnection createConnection(String apiUrl) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) new URL(apiUrl).openConnection();

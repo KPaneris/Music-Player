@@ -26,29 +26,14 @@ import javafx.scene.image.Image;
 public class MediaPlayerController {
 
 
-
-    @FXML
-    public BorderPane FrameMedia;
-
-    @FXML
-    public Button backButton;
-
-    @FXML
-    public Button nextButton;
-    @FXML
-
-    public ImageView play_pause_icon;
-    @FXML
-    private MediaView mediaView;
-
-    @FXML
-    private Button playPauseButton, muteButton;
-
-    @FXML
-    private Slider volumeSlider, progressSlider;
-
-    @FXML
-    private Label currentTimeLabel, totalTimeLabel, songTitleLabel;
+    @FXML public BorderPane FrameMedia;
+    @FXML public Button backButton;
+    @FXML public Button nextButton;
+    @FXML public ImageView play_pause_icon;
+    @FXML private MediaView mediaView;
+    @FXML private Button playPauseButton, muteButton;
+    @FXML private Slider volumeSlider, progressSlider;
+    @FXML private Label currentTimeLabel, totalTimeLabel, songTitleLabel;
 
     private MediaPlayer mediaPlayer;
     private List<File> playlist = new ArrayList<>();
@@ -85,7 +70,6 @@ public class MediaPlayerController {
 
         loadSongsFromResources();
     }
-
 
     @FXML
     private void loadSongsFromResources() {
@@ -140,7 +124,6 @@ public class MediaPlayerController {
 
         mediaPlayer.setOnEndOfMedia(this::playNextSong);
     }
-
 
     @FXML
     private void playPauseSong() {
