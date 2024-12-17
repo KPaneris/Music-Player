@@ -20,7 +20,7 @@ public class CreateAccountController {
     @FXML public PasswordField text_pass2;
     @FXML public PasswordField text_pass1;
     @FXML public TextField text_Create_Account;
-    @FXML private Label error_create_account;
+    @FXML public Label error_create_account;
 
     public TextField visible_pass1;
     public TextField visible_pass2;
@@ -67,7 +67,7 @@ public class CreateAccountController {
         }
     }
 
-    private boolean isUsernameTaken(String username) {
+    public boolean isUsernameTaken(String username) {
         String query = "SELECT 1 FROM users WHERE username = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {

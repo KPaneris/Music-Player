@@ -1,21 +1,10 @@
 package org.example.demo1;
 
 import javafx.scene.Scene;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.*;
 import javafx.scene.control.*;
-import javafx.scene.control.TextField;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.Test;
-import org.testfx.framework.junit5.ApplicationTest;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.Statement;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.testfx.framework.junit5.ApplicationTest;
 
 import static org.mockito.Mockito.*;
@@ -25,77 +14,139 @@ public class LoginControllerTest extends ApplicationTest {
 
     private TextField textFieldUsername;
     private PasswordField textFieldPassword;
+    private TextField visiblePasswordField;
     private CheckBox checkBoxShowPassword;
     private Label errorLabel;
     private Button loginButton;
+    private LoginController loginController;
 
     @Override
     public void start(Stage stage) {
-        // Create the real UI components
+        // Initialize the controller
+        loginController = new LoginController();
+
+        // Create real UI components
         textFieldUsername = new TextField();
         textFieldPassword = new PasswordField();
+        visiblePasswordField = new TextField();
+        visiblePasswordField.setVisible(false); // Initially hidden
         checkBoxShowPassword = new CheckBox("Show Password");
         errorLabel = new Label();
         loginButton = new Button("Login");
 
-        // Create the layout and add the components
-        javafx.scene.layout.VBox vbox = new javafx.scene.layout.VBox(
-                textFieldUsername, textFieldPassword, checkBoxShowPassword, loginButton, errorLabel
+        // Link UI components to the controller
+        loginController.TextField_Username = textFieldUsername;
+        loginController.text_pass_Login = textFieldPassword;
+        loginController.visible_pass_Login = visiblePasswordField;
+        loginController.check_pass_Login = checkBoxShowPassword;
+        loginController.error_login = errorLabel;
+
+        // Add UI components to the layout
+        VBox vbox = new VBox(
+                textFieldUsername, textFieldPassword, visiblePasswordField, checkBoxShowPassword, loginButton, errorLabel
         );
 
-        // Create the scene and set it on the stage
+        // Set up the scene and stage
         Scene scene = new Scene(vbox);
         stage.setScene(scene);
         stage.show();
+
+        // Simulate button click by linking the handler
+        loginButton.setOnAction(e -> loginController.handleLoginButton());
+        checkBoxShowPassword.setOnAction(e -> loginController.handleShowPassword());
     }
 
-
     @Test
-    public void testLoginWithValidCredentials() {
-        // Simulate user entering valid username and password
-        clickOn(textFieldUsername).write("validUsername");
-        clickOn(textFieldPassword).write("validPassword");
+    public void testLoginWithValidCredentials() throws Exception {
+        // Create a spy for LoginController
+        LoginController spyController = spy(loginController);
 
-        // Simulate clicking on the login button
-        clickOn(loginButton);
+        // Mock the MainApp instance
+        MainApp mockMainApp = mock(MainApp.class);
 
-        // Since we don't have backend validation here, we just check if errorLabel is empty
+        // Set the mocked MainApp in the LoginController
+        spyController.setMainApp(mockMainApp);
+
+        // Mock the isValidCredentials method
+        doReturn(true).when(spyController).isValidCredentials("validUsername", "validPassword");
+
+        // Link the LoginController fields to test UI components
+        spyController.TextField_Username = textFieldUsername;
+        spyController.text_pass_Login = textFieldPassword;
+        spyController.error_login = errorLabel;
+
+        // Simulate user input
+        textFieldUsername.setText("validUsername");
+        textFieldPassword.setText("validPassword");
+
+        // Simulate login button click
+        spyController.handleLoginButton();
+
+        // Verify the navigation was triggered
+        verify(mockMainApp).showMusicPlayerPage();
+
+        // Assert no error message
         assertEquals("", errorLabel.getText(), "Error label should be empty when login is successful.");
     }
 
     @Test
     public void testLoginWithInvalidCredentials() {
-        // Simulate user entering invalid username and password
-        clickOn(textFieldUsername).write("invalidUsername");
-        clickOn(textFieldPassword).write("invalidPassword");
+        // Mock isValidCredentials to return false
+        LoginController spyController = spy(loginController);
+        doReturn(false).when(spyController).isValidCredentials("invalidUser", "wrongPassword");
 
-        // Simulate clicking on the login button
+        // Simulate user input
+        textFieldUsername.setText("invalidUser");
+        textFieldPassword.setText("wrongPassword");
+
+        // Simulate login button click
         clickOn(loginButton);
 
-        // We expect an error message to appear in the error label
-        assertEquals("Invalid username or password!", errorLabel.getText(), "Error label should show an invalid login message.");
+        // Assert error message is displayed
+        assertEquals("Invalid username or password!", errorLabel.getText(),
+                "Error label should show an invalid login message.");
+    }
+
+    @Test
+    public void testHandleCreateAccountButton() throws Exception {
+        // Create a spy for the LoginController
+        LoginController spyController = spy(loginController);
+
+        // Mock the MainApp instance
+        MainApp mockMainApp = mock(MainApp.class);
+
+        // Set the mocked MainApp in the LoginController
+        spyController.setMainApp(mockMainApp);
+
+        // Call the method under test
+        spyController.handleCreateAccountButton();
+
+        // Verify that showCreateAccountPage was called once
+        verify(mockMainApp, times(1)).showCreateAccountPage();
     }
 
     @Test
     public void testPasswordVisibility() {
         // Simulate user entering a password and checking the show password checkbox
-        clickOn(textFieldPassword).write("password123");
+        textFieldPassword.setText("password123");
         clickOn(checkBoxShowPassword);
 
-        // Test if the password field visibility changes
-        assertEquals("password123", textFieldPassword.getText(), "Password should be visible after checkbox is selected.");
+        // Assert password field is hidden and visible password field is displayed
+        assertFalse(textFieldPassword.isVisible(), "Password field should be hidden when checkbox is selected.");
+        assertTrue(visiblePasswordField.isVisible(), "Visible password field should be shown when checkbox is selected.");
+        assertEquals("password123", visiblePasswordField.getText(), "Visible password field should display the password.");
     }
 
     @Test
     public void testPasswordVisibilityWhenUnchecked() {
-        // Simulate user entering a password and checking the show password checkbox
-        clickOn(textFieldPassword).write("password123");
-        clickOn(checkBoxShowPassword);
+        // Simulate user entering a password and toggling the checkbox
+        textFieldPassword.setText("password123");
+        clickOn(checkBoxShowPassword); // Show password
+        clickOn(checkBoxShowPassword); // Hide password
 
-        // Uncheck the checkbox
-        clickOn(checkBoxShowPassword);
-
-        // Test if the password field hides the password again
-        assertEquals("password123", textFieldPassword.getText(), "Password should be hidden after checkbox is unchecked.");
+        // Assert password field is displayed again
+        assertTrue(textFieldPassword.isVisible(), "Password field should be visible when checkbox is unchecked.");
+        assertFalse(visiblePasswordField.isVisible(), "Visible password field should be hidden when checkbox is unchecked.");
+        assertEquals("password123", textFieldPassword.getText(), "Password field should retain the entered password.");
     }
 }
