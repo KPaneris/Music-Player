@@ -11,31 +11,17 @@ import java.sql.ResultSet;
 
 public class LoginController {
 
-    public TextField visible_pass_Login;
-    @FXML
-    private AnchorPane FrameLogin;
-
-    @FXML
-    private TextField TextField_Username;
-
-    @FXML
-    private PasswordField text_pass_Login;
-
-    @FXML
-    private Button Login_Button;
-
-    @FXML
-    private Button create_account_Login;
-
-    @FXML
-    private CheckBox check_pass_Login;
-
-    @FXML
-    private Label error_login;
+    @FXML private AnchorPane FrameLogin;
+    @FXML private TextField TextField_Username;
+    @FXML private PasswordField text_pass_Login;
+    @FXML private Button Login_Button;
+    @FXML private Button create_account_Login;
+    @FXML private CheckBox check_pass_Login;
+    @FXML private Label error_login;
 
     private MainApp mainApp;
-
     private Map<String, String> users = new HashMap<>();
+    public TextField visible_pass_Login;
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
     }
@@ -78,7 +64,6 @@ public class LoginController {
         }
     }
 
-
     @FXML
     public void handleCreateAccountButton() {
         try {
@@ -87,9 +72,8 @@ public class LoginController {
             e.printStackTrace();
         }
     }
+
     @FXML
-
-
     private boolean isValidCredentials(String username, String password) {
         String query = "SELECT * FROM users WHERE username = ? AND password = ?";
         try (Connection conn = DatabaseConnection.getConnection();

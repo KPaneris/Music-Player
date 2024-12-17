@@ -13,34 +13,18 @@ import javax.swing.*;
 
 public class CreateAccountController {
 
-    @FXML
+    @FXML public AnchorPane FrameAccountApplication;
+    @FXML public Button create_account_Button_Page;
+    @FXML public CheckBox check_pass1_Create_Account;
+    @FXML public Button cancel_Button;
+    @FXML public PasswordField text_pass2;
+    @FXML public PasswordField text_pass1;
+    @FXML public TextField text_Create_Account;
+    @FXML private Label error_create_account;
 
-    public AnchorPane FrameAccountApplication;
-    @FXML
-
-    public Button create_account_Button_Page;
-    @FXML
-
-    public CheckBox check_pass1_Create_Account;
-    @FXML
-
-    public Button cancel_Button;
-    @FXML
-
-    public PasswordField text_pass2;
-    @FXML
-
-    public PasswordField text_pass1;
-
-    @FXML
-    public TextField text_Create_Account;
     public TextField visible_pass1;
     public TextField visible_pass2;
-
-    @FXML
-    private Label error_create_account;
     private MainApp mainApp;
-
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
     }
@@ -96,7 +80,6 @@ public class CreateAccountController {
         }
     }
 
-
     @FXML
     public void handleCancelButton() {
         // Return to the login page without creating an account
@@ -106,6 +89,7 @@ public class CreateAccountController {
             throw new RuntimeException(e);
         }
     }
+
     // Μέθοδος για να διαχειριστεί την επιλογή του checkbox
     @FXML
     public void handleShowPassword() {
