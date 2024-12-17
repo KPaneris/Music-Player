@@ -23,14 +23,18 @@ import java.util.Map;
 public class MusicPlayerController {
     @FXML private Button artist, playlist, mood, settings, love, home, list;
     @FXML private AnchorPane FrameMusicPlayer;
-    @FXML private TextField searchBar;
-    @FXML private ComboBox<String> searchMode;
-    @FXML private ListView<String> resultsList;
-    @FXML private MediaPlayer mediaPlayer;
+    @FXML
+    TextField searchBar;
+    @FXML
+    public ComboBox<String> searchMode;
+    @FXML
+    ListView<String> resultsList;
+    @FXML
+    MediaPlayer mediaPlayer;
     @FXML private PlaylistItem lastSelectedSongMetadata;
 
     private MainApp mainApp;
-    private Map<String, ItemInfo> trackMap = new HashMap<>();
+    Map<String, ItemInfo> trackMap = new HashMap<>();
 
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -132,7 +136,7 @@ public class MusicPlayerController {
         }
     }
 
-    private void updateSearchResultsWithStreamUrl(JSONArray dataArray, String mode) {
+    void updateSearchResultsWithStreamUrl(JSONArray dataArray, String mode) {
         trackMap.clear();
         resultsList.getItems().clear();
 
@@ -175,7 +179,7 @@ public class MusicPlayerController {
         resultsList.setVisible(true);
     }
 
-    private String buildApiUrl(String query, String mode) {
+    public String buildApiUrl(String query, String mode) {
         String baseUrl = "https://audius-discovery-12.cultur3stake.com/v1/";
         String apiUrl = switch (mode) {
             case "Artists" -> baseUrl + "users/search?query=" + query;
@@ -194,7 +198,7 @@ public class MusicPlayerController {
     }
 
     @FXML
-    private void handleSearch() {
+    void handleSearch() {
         String query = searchBar.getText();
         String selectedMode = searchMode.getValue();
 
@@ -229,7 +233,7 @@ public class MusicPlayerController {
         }).start();
     }
 
-    private void playStreamUrl(String streamUrl) {
+    void playStreamUrl(String streamUrl) {
         Platform.runLater(() -> {                                                   //javafx ui connection here
             try {
                 Media media = new Media(streamUrl);
@@ -243,7 +247,7 @@ public class MusicPlayerController {
     }
 
     @FXML
-    private void handleListClick(MouseEvent event) {
+    void handleListClick(MouseEvent event) {
         if (event.getClickCount() == 1) {
             String selectedItem = resultsList.getSelectionModel().getSelectedItem();
             if (selectedItem != null) {
@@ -274,7 +278,7 @@ public class MusicPlayerController {
         return connection;
     }
 
-    public class ItemInfo {
+    public static class ItemInfo {
         private String id;
         private String type;
         private String cid;

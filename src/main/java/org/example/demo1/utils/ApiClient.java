@@ -6,7 +6,8 @@ import java.net.URL;
 
 public class ApiClient {
     public static HttpURLConnection createConnection(String apiUrl) throws IOException {
-        HttpURLConnection connection = (HttpURLConnection) new URL(apiUrl).openConnection();
+        HttpURLConnection connection;
+        connection = (HttpURLConnection) new URL(apiUrl).openConnection();
         connection.setRequestMethod("GET");
         connection.setRequestProperty("Accept", "application/json");
         return connection;
