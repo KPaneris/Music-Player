@@ -1,5 +1,6 @@
 package org.example.demo1;
 
+
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -21,8 +22,10 @@ import java.util.Map;
 
 
 public class MusicPlayerController {
-    @FXML private Button artist, playlist, mood, settings, love, home, list;
-    @FXML private AnchorPane FrameMusicPlayer;
+    @FXML
+    private Button artist, playlist, mood, settings, love, home, list;
+    @FXML
+    private AnchorPane FrameMusicPlayer;
     @FXML
     TextField searchBar;
     @FXML
@@ -31,14 +34,15 @@ public class MusicPlayerController {
     ListView<String> resultsList;
     @FXML
     MediaPlayer mediaPlayer;
-    @FXML private PlaylistItem lastSelectedSongMetadata;
-
+    @FXML
+    private PlaylistItem lastSelectedSongMetadata;
     private MainApp mainApp;
     Map<String, ItemInfo> trackMap = new HashMap<>();
 
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
     }
+
     @FXML
     public void initialize() {
         configureTooltips();
@@ -90,7 +94,6 @@ public class MusicPlayerController {
 
     private void configureResultsList() {
         resultsList.setVisible(false); // Ensure results list is hidden initially
-
         resultsList.setOnMouseClicked(this::handleListClick);
 
         FrameMusicPlayer.setOnMouseClicked(event -> {
@@ -104,9 +107,7 @@ public class MusicPlayerController {
     private void configureSettingsMenu() {
         ContextMenu settingsMenu = new ContextMenu();
         MenuItem logoutItem = new MenuItem("Log Out");
-
         logoutItem.setOnAction(event -> handleLogoutAction());
-
         settingsMenu.getItems().add(logoutItem);
 
         settings.setOnMouseClicked(event -> {
@@ -121,13 +122,12 @@ public class MusicPlayerController {
         try {
             // Navigate to the login page
             mainApp.showLoginPage();
-
             // Close the current window if it exists
             Stage currentStage = null;
+
             if (FrameMusicPlayer != null && FrameMusicPlayer.getScene() != null) {
                 currentStage = (Stage) FrameMusicPlayer.getScene().getWindow();
             }
-
             if (currentStage != null) {
                 currentStage.close();
             }
@@ -140,7 +140,7 @@ public class MusicPlayerController {
         trackMap.clear();
         resultsList.getItems().clear();
 
-        if (dataArray.length() == 0) {
+        if (dataArray.isEmpty()) {
             resultsList.getItems().add("No results found.");
             System.out.println("Search results are empty.");
             return;
@@ -174,7 +174,6 @@ public class MusicPlayerController {
                 System.err.println("Item with missing ID skipped: " + item);
             }
         }
-
         System.out.println("Search results updated with " + dataArray.length() + " items.");
         resultsList.setVisible(true);
     }
@@ -187,12 +186,10 @@ public class MusicPlayerController {
             case "Songs" -> baseUrl + "tracks/search?query=" + query;
             default -> null;
         };
-
         if (apiUrl == null) {
             System.err.println("Unsupported mode: " + mode);
             throw new IllegalArgumentException("Unsupported mode: " + mode);
         }
-
         System.out.println("Generated API URL: " + apiUrl);
         return apiUrl;
     }
@@ -207,10 +204,8 @@ public class MusicPlayerController {
             resultsList.getItems().add("Please enter a search term.");
             return;
         }
-
         resultsList.getItems().clear();
         System.out.println("Initiating search for: " + query + " in mode: " + selectedMode);
-
         new Thread(() -> {
             try {
                 String apiUrl = buildApiUrl(query, selectedMode);
@@ -266,9 +261,7 @@ public class MusicPlayerController {
     }
 
     private void showErrorMessage(String message) {
-        Platform.runLater(() -> {
-            JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
-        });
+        Platform.runLater(() -> JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE));
     }
 
     private HttpURLConnection createConnection(String apiUrl) throws IOException {
@@ -290,7 +283,6 @@ public class MusicPlayerController {
             this.cid = cid;
             this.trackUrl = trackUrl;
         }
-
         public String getId() { return id; }
         public String getType() { return type; }
         public String getCid() { return cid; }
