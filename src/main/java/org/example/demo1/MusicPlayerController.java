@@ -158,7 +158,7 @@ public class MusicPlayerController {
 
             if (!itemId.isEmpty()) {
                 if ("Songs".equals(mode)) {
-                    String streamUrl = "https://audius-discovery-12.cultur3stake.com/v1/tracks/" + itemId + "/stream";
+                    String streamUrl = "https://discoveryprovider2.audius.co/v1/tracks/" + itemId + "/stream";
                     trackMap.put(displayText, new ItemInfo(itemId, "track", null, streamUrl));
                 } else {
                     String itemType = switch (mode) {
@@ -179,7 +179,7 @@ public class MusicPlayerController {
     }
 
     public String buildApiUrl(String query, String mode) {
-        String baseUrl = "https://audius-discovery-12.cultur3stake.com/v1/";
+        String baseUrl = "https://discoveryprovider2.audius.co/v1/";
         String apiUrl = switch (mode) {
             case "Artists" -> baseUrl + "users/search?query=" + query;
             case "Albums", "Playlists" -> baseUrl + "playlists/search?query=" + query;
@@ -354,17 +354,17 @@ public class MusicPlayerController {
     }
 
     private void fetchArtistDetails(String artistId) {
-        String apiUrl = "https://audius-discovery-12.cultur3stake.com/v1/users/" + artistId;
+        String apiUrl = "https://discoveryprovider2.audius.co/v1/users/" + artistId;
         fetchDetails(apiUrl, "Artist");
     }
 
     private void fetchAlbumDetails(String albumId) {
-        String apiUrl = "https://audius-discovery-12.cultur3stake.com/v1/albums/" + albumId;
+        String apiUrl = "https://discoveryprovider2.audius.co/v1/albums/" + albumId;
         fetchDetails(apiUrl, "Album");
     }
 
     private void fetchPlaylistDetails(String playlistId) {
-        String apiUrl = "https://audius-discovery-12.cultur3stake.com/v1/playlists/" + playlistId;
+        String apiUrl = "https://discoveryprovider2.audius.co/v1/playlists/" + playlistId;
         fetchDetails(apiUrl, "Playlist");
 
     }
