@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.effect.Lighting?>
 <?import javafx.scene.effect.Shadow?>
@@ -14,15 +18,14 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.text.Font?>
-<?import javafx.collections.FXCollections?>
-<?import javafx.scene.control.ComboBox?>
-<AnchorPane fx:id="FrameMusicPlayer" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="750.0" styleClass="body-background" stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/21.0.5" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.demo1.MusicPlayerController">
 
+<AnchorPane fx:id="FrameMusicPlayer" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="750.0" prefWidth="772.0" styleClass="body-background" stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.demo1.MusicPlayerController">
    <children>
-      <BorderPane prefHeight="600.0" prefWidth="860.0" stylesheets="@css/style.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <BorderPane layoutY="22.0" prefHeight="500.0" prefWidth="784.0" stylesheets="@css/style.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <top>
-            <Pane prefHeight="85.0" prefWidth="739.0" styleClass="top-background" stylesheets="@css/style.css" BorderPane.alignment="CENTER">
+            <Pane prefHeight="85.0" prefWidth="739.0" styleClass="top-background" stylesheets="@css/style.css">
                <children>
                   <ImageView fitHeight="46.0" fitWidth="40.0" layoutX="22.0" layoutY="12.0" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -49,7 +52,7 @@
                   </HBox>
                   <HBox alignment="CENTER" layoutX="252.0" layoutY="21.0" prefHeight="39.0" prefWidth="200.0" styleClass="search-background" stylesheets="@css/style.css">
                      <children>
-                        <ComboBox fx:id="searchMode" promptText="Select" prefWidth="100.0">
+                        <ComboBox fx:id="searchMode" prefWidth="100.0" promptText="Select" styleClass="search-background" stylesheets="@css/style.css">
                            <items>
                               <FXCollections fx:factory="observableArrayList">
                                  <String fx:value="Songs" />
@@ -62,9 +65,7 @@
                         <TextField fx:id="searchBar" promptText="Search..." styleClass="transparent" stylesheets="@css/style.css" />
                      </children>
                   </HBox>
-
-
-                  <ListView fx:id="resultsList" layoutX="215.0" layoutY="60.0" onMouseClicked="#handleSearch" prefHeight="200.0" prefWidth="300.0" style="-fx-background-color: #003A46; -fx-control-inner-background: #003A46; -fx-border-color: transparent;" visible="false" />
+                  <StackPane />
                   <Button fx:id="mood" layoutX="558.0" layoutY="17.0" mnemonicParsing="false" prefHeight="34.0" prefWidth="38.0" styleClass="button-custom" stylesheets="@css/style.css">
                      <graphic>
                         <ImageView fitHeight="27.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true">
@@ -83,15 +84,10 @@
                         </ImageView>
                      </graphic>
                   </Button>
-
-
-
-
-
-
                </children>
-
-
+               <opaqueInsets>
+                  <Insets />
+               </opaqueInsets>
             </Pane>
          </top>
          <left>
@@ -124,7 +120,6 @@
                                  <bumpInput>
                                     <Shadow />
                                  </bumpInput>
-
                               </Lighting>
                            </effect>
                         </Button>
@@ -165,27 +160,50 @@
             </Pane>
          </left>
          <center>
-            <Pane prefHeight="335.0" prefWidth="617.0" visible="false" BorderPane.alignment="CENTER" />
+            <Pane focusTraversable="true" prefHeight="323.0" prefWidth="407.0" BorderPane.alignment="CENTER">
+               <children>
+                  <ListView fx:id="resultsList" layoutX="105.0" layoutY="-17.0" onMouseClicked="#handleSearch" prefHeight="444.0" prefWidth="300.0" style="-fx-background-color: #003A46; -fx-control-inner-background: #003A46; -fx-border-color: transparent;" />
+               </children>
+            </Pane>
          </center>
          <bottom>
-
-
-
-
-            <Pane fx:id="Media_PLayer" prefHeight="185.0" prefWidth="800.0" BorderPane.alignment="CENTER" />
-
-            <!-- Εδώ ενσωματώνουμε το media.fxml -->
-            <fx:include fx:id="mediaPane" source="media.fxml" />
-
-
-
-
+            <Pane prefHeight="200.0" prefWidth="60.0" styleClass="bottom_bar_color" stylesheets="@css/style.css" BorderPane.alignment="CENTER">
+               <children>
+                  <Button fx:id="play_button" layoutX="297.0" layoutY="97.0" mnemonicParsing="false" prefHeight="63.0" prefWidth="97.0" styleClass="button_media" stylesheets="@css/style.css" text="Play" />
+                  <Button fx:id="next_button" layoutX="431.0" layoutY="97.0" onAction="#handleNextButtonAction" prefHeight="62.0" prefWidth="64.0" styleClass="button_media" stylesheets="@css/style.css">
+                     <graphic>
+                        <ImageView fitHeight="41.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@imag/next.png" />
+                           </image>
+                        </ImageView>
+                     </graphic></Button>
+                  <Button fx:id="back_button" layoutX="177.0" layoutY="93.0" onAction="#handleBackButtonAction" prefHeight="50.0" prefWidth="39.0" styleClass="button_media" stylesheets="@css/style.css">
+                     <graphic>
+                        <ImageView fitHeight="44.0" fitWidth="58.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@imag/back.png" />
+                           </image>
+                        </ImageView>
+                     </graphic></Button>
+                  <Slider fx:id="slide_song" layoutX="177.0" layoutY="53.0" prefHeight="14.0" prefWidth="324.0" />
+                  <Label fx:id="start_time" layoutX="108.0" layoutY="51.0" prefHeight="19.0" prefWidth="35.0" text="00:00" textFill="WHITE" />
+                  <Label fx:id="end_time" layoutX="526.0" layoutY="52.0" prefHeight="17.0" prefWidth="49.0" text="00:00" textFill="WHITE" />
+                  <Slider fx:id="vol_slide" layoutX="550.0" layoutY="135.0" />
+                  <Label layoutX="604.0" layoutY="119.0" prefHeight="17.0" prefWidth="33.0" text="VOL" textFill="WHITE" />
+                  <Label fx:id="song_name" layoutX="311.0" layoutY="24.0" text="NO SONG" textFill="WHITE" />
+                  <Button layoutX="640.0" layoutY="33.0" mnemonicParsing="false" prefHeight="57.0" prefWidth="64.0" styleClass="button_media" stylesheets="@css/style.css">
+                     <graphic>
+                        <ImageView fitHeight="27.0" fitWidth="33.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@imag/love.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+               </children>
+            </Pane>
          </bottom>
-         <center>
-            <Pane prefHeight="335.0" prefWidth="617.0" BorderPane.alignment="CENTER" />
-         </center>
-
-
       </BorderPane>
    </children>
 </AnchorPane>

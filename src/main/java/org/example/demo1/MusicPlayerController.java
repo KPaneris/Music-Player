@@ -2,42 +2,95 @@ package org.example.demo1;
 
 
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import org.example.demo1.utils.ApiClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import javax.swing.*;
-import java.io.IOException;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 
 public class MusicPlayerController {
-    @FXML
-    private Button artist, playlist, mood, settings, love, home, list;
+
+
     @FXML
     private AnchorPane FrameMusicPlayer;
+
+
+
+//Media player
+
+    @FXML public Button back_button;
+    @FXML public Label song_name;
+    @FXML public Button pause_button;
+    @FXML public Button play_button;
+    @FXML public Slider vol_slide;
+    @FXML public Button next_button;
+    @FXML public Slider slide_song;
+    @FXML public Label start_time;
+    @FXML  public Label end_time;
+
+    private MediaPlayer mediaPlayer;
+    private Media media;
+    private String currentStreamUrl;
+
+
+
+
+    @FXML
+    public TextField searchbar;
     @FXML
     TextField searchBar;
     @FXML
     public ComboBox<String> searchMode;
     @FXML
     ListView<String> resultsList;
+
+
+
+
     @FXML
-    MediaPlayer mediaPlayer;
+    private Button artist, playlist, mood, settings, love, home, list;
+
+
+
+
     @FXML
     private PlaylistItem lastSelectedSongMetadata;
+
+
+    @FXML
     private MainApp mainApp;
+
+
+
+
+    @FXML
     Map<String, ItemInfo> trackMap = new HashMap<>();
+
+
+    @FXML
+    private final List<String> recentSearches = new LinkedList<>(); // Store recent searches
+
 
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -49,8 +102,71 @@ public class MusicPlayerController {
         configureSearchBar();
         configureResultsList();
         configureSettingsMenu();
+
         resultsList.getItems().clear(); // Clear results initially
         resultsList.setVisible(false); // Ensure no results are displayed at startup
+        System.out.println("Controller initialized!");
+        ObservableList<String> testData = FXCollections.observableArrayList();
+
+        // Wait until the scene is set before accessing its window
+        if (FrameMusicPlayer != null && FrameMusicPlayer.getScene() != null) {
+            FrameMusicPlayer.getScene().windowProperty().addListener((observable, oldValue, newValue) -> {
+                if (newValue != null) {
+                    // Now it's safe to access the window
+                    Stage stage = (Stage) newValue;
+
+                    // Debugging: Verify if the setOnCloseRequest is properly attached
+                    System.out.println("Setting onCloseRequest listener.");
+                    stage.setOnCloseRequest(event -> {
+                        System.out.println("Window close event triggered."); // Debugging message
+                        saveRecentSearchesToFile(); // Save recent searches when window is closed
+                    });
+                }
+            });
+        }
+
+        // Load recent searches from the file
+        loadRecentSearchesFromFile();
+    }
+
+    private void saveRecentSearchesToFile() {
+        // Debugging: Check if save function is being called
+        System.out.println("Saving recent searches to file...");
+
+        // Make sure the list is not empty before saving
+        if (recentSearches.isEmpty()) {
+            System.out.println("No recent searches to save.");
+            return; // No recent searches to save
+        }
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("recentSearches.txt"))) {
+            for (String song : recentSearches) {
+                writer.write(song);
+                writer.newLine(); // Each song name will be on a new line
+            }
+            System.out.println("Recent searches saved to file.");
+        } catch (IOException e) {
+            System.err.println("Error saving recent searches: " + e.getMessage());
+        }
+    }
+
+    private void loadRecentSearchesFromFile() {
+        File file = new File("recentSearches.txt");
+        if (file.exists()) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    // Ensure you do not exceed the 10-song limit
+                    if (recentSearches.size() < 10) {
+                        recentSearches.add(line);
+
+                    }
+                }
+                System.out.println("Recent searches loaded from file.");
+            } catch (IOException e) {
+                System.err.println("Error loading recent searches: " + e.getMessage());
+            }
+        }
     }
 
     private void configureTooltips() {
@@ -104,6 +220,24 @@ public class MusicPlayerController {
         });
     }
 
+
+
+    // This is the correct method for adding a song to recent searches
+    private void addToRecentSearches(String songName, ItemInfo itemInfo) {
+        if (recentSearches.size() >= 10) {
+            String removedItem = recentSearches.remove(0); // Remove the oldest search if the list exceeds the limit
+
+        }
+        recentSearches.add(songName);
+
+
+        // Update the trackMap with the song metadata and track URL
+        trackMap.put(songName, itemInfo);
+
+        System.out.println("Added to recent searches: " + songName);
+        System.out.println("Recent searches: " + recentSearches);
+    }
+
     private void configureSettingsMenu() {
         ContextMenu settingsMenu = new ContextMenu();
         MenuItem logoutItem = new MenuItem("Log Out");
@@ -120,8 +254,12 @@ public class MusicPlayerController {
     @FXML
     private void handleLogoutAction() {
         try {
+            // Save recent searches before logging out
+            saveRecentSearchesToFile();
+
             // Navigate to the login page
             mainApp.showLoginPage();
+
             // Close the current window if it exists
             Stage currentStage = null;
 
@@ -229,39 +367,106 @@ public class MusicPlayerController {
     }
 
     void playStreamUrl(String streamUrl) {
-        Platform.runLater(() -> {                                                   //javafx ui connection here
-            try {
-                Media media = new Media(streamUrl);
-                mediaPlayer = new MediaPlayer(media);
-                mediaPlayer.play();
-            } catch (Exception e) {
-                showErrorMessage("Error playing track: " + e.getMessage());
-                e.printStackTrace();
+        // Σταματάμε την προηγούμενη αναπαραγωγή, αν υπάρχει
+        if (mediaPlayer != null && mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
+            mediaPlayer.stop();
+        }
+
+        // Δημιουργούμε νέο Media αντικείμενο με το URL του stream
+        this.currentStreamUrl = streamUrl;
+        Media media = new Media(streamUrl);
+        mediaPlayer = new MediaPlayer(media);
+
+        // Όταν το mediaPlayer είναι έτοιμο για αναπαραγωγή, το ξεκινάμε αμέσως
+        mediaPlayer.setOnReady(() -> {
+            // Εξασφαλίζουμε ότι το τραγούδι ξεκινά από την αρχή
+            mediaPlayer.seek(Duration.ZERO);  // Θέτουμε την τρέχουσα θέση στο 0, για να ξεκινήσει το τραγούδι σωστά
+            mediaPlayer.play(); // Ξεκινάμε την αναπαραγωγή
+
+            // Ενημερώνουμε το πεδίο "Now Playing" με το όνομα του τραγουδιού
+            String songTitle = media.getSource().substring(media.getSource().lastIndexOf("/") + 1);  // Λαμβάνουμε το όνομα του τραγουδιού από το URL
+            song_name.setText("Now Playing: " + songTitle);  // Ενημερώνουμε το "Now Playing" μόνο όταν το τραγούδι ξεκινήσει να παίζει
+
+            slide_song.setMax(media.getDuration().toSeconds()); // Ορίζουμε το max του slider ίσο με τη διάρκεια του τραγουδιού
+            vol_slide.setValue(50);  // Αρχική ένταση 50%
+            slide_song.setValue(0);  // Ξεκινάμε το slider στο 0
+
+            // Ενημέρωση για τη διάρκεια του τραγουδιού
+            start_time.setText(formatTime(Duration.ZERO));  // Αρχική ώρα εκκίνησης στο 0
+            end_time.setText(formatTime(media.getDuration())); // Ενημερώνουμε την ώρα λήξης
+        });
+
+        // Ρύθμιση Play/Pause button
+        play_button.setText("Pause");
+        play_button.setOnAction(event -> {
+            if (mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
+                mediaPlayer.pause(); // Παύση του τραγουδιού
+                play_button.setText("Play"); // Εμφανίζουμε το κουμπί Play
+            } else {
+                mediaPlayer.play(); // Συνέχιση του τραγουδιού
+                play_button.setText("Pause"); // Εμφανίζουμε το κουμπί Pause
             }
+        });
+
+        // Ρύθμιση του volume slider
+        vol_slide.valueProperty().addListener((observable, oldValue, newValue) -> {
+            mediaPlayer.setVolume(newValue.doubleValue() / 100.0); // Αλλαγή έντασης από 0-100 σε 0.0-1.0
+        });
+
+        // Ενημέρωση της θέσης του τραγουδιού μέσω του slider
+        slide_song.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue.doubleValue() != oldValue.doubleValue()) {
+                mediaPlayer.seek(Duration.seconds(newValue.doubleValue())); // Άμεση αναζήτηση στη νέα θέση
+            }
+        });
+
+        // Ενημέρωση της κατάσταση του τραγουδιού όταν ολοκληρωθεί
+        mediaPlayer.setOnEndOfMedia(() -> {
+            play_button.setText("Play"); // Επαναφορά του κουμπιού Play
         });
     }
 
+    // Μέθοδος για να φορμάρουμε την ώρα
+    private String formatTime(Duration duration) {
+        int minutes = (int) duration.toMinutes();
+        int seconds = (int) duration.toSeconds() % 60;
+        return String.format("%02d:%02d", minutes, seconds);
+    }
+
+
+
     @FXML
     void handleListClick(MouseEvent event) {
-        if (event.getClickCount() == 1) {
+        if (event.getClickCount() == 1) {  // Όταν γίνει κλικ σε ένα τραγούδι
             String selectedItem = resultsList.getSelectionModel().getSelectedItem();
             if (selectedItem != null) {
                 ItemInfo selectedItemInfo = trackMap.get(selectedItem);
-                if (selectedItemInfo != null) {
-                    if ("track".equals(selectedItemInfo.getType())) {
-                        // Play the stream URL for tracks
-                        playStreamUrl(selectedItemInfo.getTrackUrl());
-                    } else {
-                        // Handle other item types (e.g., fetch details)
-                        handleItemSelection(selectedItem, selectedItemInfo);
-                    }
+                if (selectedItemInfo != null && "track".equals(selectedItemInfo.getType())) {
+
+                    // Ενημέρωση του πεδίου Now Playing
+                    song_name.setText("Now Playing: " + selectedItem);  // Το όνομα του τραγουδιού από τη λίστα
+
+                    // Προσθήκη του τραγουδιού στη λίστα των πρόσφατων αναζητήσεων
+                    addToRecentSearches(selectedItem, selectedItemInfo);
+
+                    // Παίζουμε το τραγούδι
+                    playStreamUrl(selectedItemInfo.getTrackUrl());
+
+                    // Κλείνουμε τη λίστα αποτελεσμάτων
+                    resultsList.setVisible(false);
                 }
             }
         }
     }
 
     private void showErrorMessage(String message) {
-        Platform.runLater(() -> JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE));
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Something went wrong");
+            alert.setContentText(message);
+            alert.showAndWait();
+        });
     }
 
     private HttpURLConnection createConnection(String apiUrl) throws IOException {
@@ -269,6 +474,43 @@ public class MusicPlayerController {
         connection.setRequestMethod("GET");
         connection.setRequestProperty("Accept", "application/json");
         return connection;
+    }
+
+    @FXML
+    void handleNextButtonAction() {
+        if (!resultsList.getItems().isEmpty()) {
+            // Πάρε την τρέχουσα επιλεγμένη θέση στη λίστα
+            int currentIndex = resultsList.getSelectionModel().getSelectedIndex();
+
+            // Αν υπάρχει επόμενο στοιχείο, παίξε το
+            if (currentIndex + 1 < resultsList.getItems().size()) {
+                String nextItem = resultsList.getItems().get(currentIndex + 1);
+                resultsList.getSelectionModel().select(currentIndex + 1);
+                ItemInfo nextItemInfo = trackMap.get(nextItem);
+                if (nextItemInfo != null && "track".equals(nextItemInfo.getType())) {
+                    playStreamUrl(nextItemInfo.getTrackUrl()); // Παίξε το επόμενο τραγούδι
+                }
+            }
+        }
+    }
+
+
+    @FXML
+    void handleBackButtonAction() {
+        if (!resultsList.getItems().isEmpty()) {
+            // Πάρε την τρέχουσα επιλεγμένη θέση στη λίστα
+            int currentIndex = resultsList.getSelectionModel().getSelectedIndex();
+
+            // Αν υπάρχει προηγούμενο στοιχείο, παίξε το
+            if (currentIndex - 1 >= 0) {
+                String previousItem = resultsList.getItems().get(currentIndex - 1);
+                resultsList.getSelectionModel().select(currentIndex - 1);
+                ItemInfo previousItemInfo = trackMap.get(previousItem);
+                if (previousItemInfo != null && "track".equals(previousItemInfo.getType())) {
+                    playStreamUrl(previousItemInfo.getTrackUrl()); // Παίξε το προηγούμενο τραγούδι
+                }
+            }
+        }
     }
 
     public static class ItemInfo {
