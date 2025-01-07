@@ -2,10 +2,13 @@ package org.example.demo1;
 
 
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
@@ -14,14 +17,19 @@ import org.example.demo1.utils.ApiClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import javax.swing.*;
-import java.io.IOException;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 
 public class MusicPlayerController {
+    @FXML
+    public ListView recentSearchesList;
+    public Pane Media_PLayer;
     @FXML
     private Button artist, playlist, mood, settings, love, home, list;
     @FXML
@@ -38,6 +46,8 @@ public class MusicPlayerController {
     private PlaylistItem lastSelectedSongMetadata;
     private MainApp mainApp;
     Map<String, ItemInfo> trackMap = new HashMap<>();
+    private List<String> recentSearches = new LinkedList<>(); // Store recent searches
+
 
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -49,8 +59,72 @@ public class MusicPlayerController {
         configureSearchBar();
         configureResultsList();
         configureSettingsMenu();
+        configureRecentSearchesList(); // New configuration method
         resultsList.getItems().clear(); // Clear results initially
         resultsList.setVisible(false); // Ensure no results are displayed at startup
+        System.out.println("Controller initialized!");
+        ObservableList<String> testData = FXCollections.observableArrayList();
+        recentSearchesList.setItems(testData);
+
+        // Wait until the scene is set before accessing its window
+        if (FrameMusicPlayer != null && FrameMusicPlayer.getScene() != null) {
+            FrameMusicPlayer.getScene().windowProperty().addListener((observable, oldValue, newValue) -> {
+                if (newValue != null) {
+                    // Now it's safe to access the window
+                    Stage stage = (Stage) newValue;
+
+                    // Debugging: Verify if the setOnCloseRequest is properly attached
+                    System.out.println("Setting onCloseRequest listener.");
+                    stage.setOnCloseRequest(event -> {
+                        System.out.println("Window close event triggered."); // Debugging message
+                        saveRecentSearchesToFile(); // Save recent searches when window is closed
+                    });
+                }
+            });
+        }
+
+        // Load recent searches from the file
+        loadRecentSearchesFromFile();
+    }
+
+    private void saveRecentSearchesToFile() {
+        // Debugging: Check if save function is being called
+        System.out.println("Saving recent searches to file...");
+
+        // Make sure the list is not empty before saving
+        if (recentSearches.isEmpty()) {
+            System.out.println("No recent searches to save.");
+            return; // No recent searches to save
+        }
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("recentSearches.txt"))) {
+            for (String song : recentSearches) {
+                writer.write(song);
+                writer.newLine(); // Each song name will be on a new line
+            }
+            System.out.println("Recent searches saved to file.");
+        } catch (IOException e) {
+            System.err.println("Error saving recent searches: " + e.getMessage());
+        }
+    }
+
+    private void loadRecentSearchesFromFile() {
+        File file = new File("recentSearches.txt");
+        if (file.exists()) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    // Ensure you do not exceed the 10-song limit
+                    if (recentSearches.size() < 10) {
+                        recentSearches.add(line);
+                        recentSearchesList.getItems().add(line);
+                    }
+                }
+                System.out.println("Recent searches loaded from file.");
+            } catch (IOException e) {
+                System.err.println("Error loading recent searches: " + e.getMessage());
+            }
+        }
     }
 
     private void configureTooltips() {
@@ -104,6 +178,41 @@ public class MusicPlayerController {
         });
     }
 
+    // This is the correct method for configuring recent searches
+    private void configureRecentSearchesList() {
+        recentSearchesList.getItems().clear(); // Clear the recent searches initially
+        recentSearchesList.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 1) {
+                String selectedRecentSearch = (String) recentSearchesList.getSelectionModel().getSelectedItem();
+                if (selectedRecentSearch != null) {
+                    ItemInfo itemInfo = trackMap.get(selectedRecentSearch);
+                    if (itemInfo != null && "track".equals(itemInfo.getType())) {
+                        // Play the track from the recent search list
+                        playStreamUrl(itemInfo.getTrackUrl());
+                    } else {
+                        showErrorMessage("Unable to play the selected item.");
+                    }
+                }
+            }
+        });
+    }
+
+    // This is the correct method for adding a song to recent searches
+    private void addToRecentSearches(String songName, ItemInfo itemInfo) {
+        if (recentSearches.size() >= 10) {
+            String removedItem = recentSearches.remove(0); // Remove the oldest search if the list exceeds the limit
+            recentSearchesList.getItems().remove(removedItem);
+        }
+        recentSearches.add(songName);
+        recentSearchesList.getItems().add(songName);
+
+        // Update the trackMap with the song metadata and track URL
+        trackMap.put(songName, itemInfo);
+
+        System.out.println("Added to recent searches: " + songName);
+        System.out.println("Recent searches: " + recentSearches);
+    }
+
     private void configureSettingsMenu() {
         ContextMenu settingsMenu = new ContextMenu();
         MenuItem logoutItem = new MenuItem("Log Out");
@@ -120,8 +229,12 @@ public class MusicPlayerController {
     @FXML
     private void handleLogoutAction() {
         try {
+            // Save recent searches before logging out
+            saveRecentSearchesToFile();
+
             // Navigate to the login page
             mainApp.showLoginPage();
+
             // Close the current window if it exists
             Stage currentStage = null;
 
@@ -249,6 +362,9 @@ public class MusicPlayerController {
                 ItemInfo selectedItemInfo = trackMap.get(selectedItem);
                 if (selectedItemInfo != null) {
                     if ("track".equals(selectedItemInfo.getType())) {
+                        // Save the song name to the recent searches list and update the UI
+                        addToRecentSearches(selectedItem, selectedItemInfo);
+
                         // Play the stream URL for tracks
                         playStreamUrl(selectedItemInfo.getTrackUrl());
                     } else {
