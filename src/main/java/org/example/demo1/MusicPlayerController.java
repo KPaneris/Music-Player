@@ -25,6 +25,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -367,64 +371,67 @@ public class MusicPlayerController {
     }
 
     void playStreamUrl(String streamUrl) {
-        // Σταματάμε την προηγούμενη αναπαραγωγή, αν υπάρχει
-        if (mediaPlayer != null && mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
-            mediaPlayer.stop();
+            // Σταματάμε την προηγούμενη αναπαραγωγή, αν υπάρχει
+            if (mediaPlayer != null && mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
+                mediaPlayer.stop();
+            }
+    
+            // Δημιουργούμε νέο Media αντικείμενο με το URL του stream
+            this.currentStreamUrl = streamUrl;
+            Media media = new Media(streamUrl);
+            mediaPlayer = new MediaPlayer(media);
+    
+            // Όταν το mediaPlayer είναι έτοιμο για αναπαραγωγή, το ξεκινάμε αμέσως
+            mediaPlayer.setOnReady(() -> {
+                // Εξασφαλίζουμε ότι το τραγούδι ξεκινά από την αρχή
+                mediaPlayer.seek(Duration.ZERO);  // Θέτουμε την τρέχουσα θέση στο 0, για να ξεκινήσει το τραγούδι σωστά
+                mediaPlayer.play(); // Ξεκινάμε την αναπαραγωγή
+    
+                // Ενημερώνουμε το πεδίο "Now Playing" με το όνομα του τραγουδιού
+                String songTitle = media.getSource().substring(media.getSource().lastIndexOf("/") + 1);  // Λαμβάνουμε το όνομα του τραγουδιού από το URL
+                song_name.setText("Now Playing: " + songTitle);  // Ενημερώνουμε το "Now Playing" μόνο όταν το τραγούδι ξεκινήσει να παίζει
+    
+                // NEW: Send song data to the database
+                sendDataToDatabase(songTitle, streamUrl);
+    
+                slide_song.setMax(media.getDuration().toSeconds()); // Ορίζουμε το max του slider ίσο με τη διάρκεια του τραγουδιού
+                vol_slide.setValue(50);  // Αρχική ένταση 50%
+                slide_song.setValue(0);  // Ξεκινάμε το slider στο 0
+    
+                // Ενημέρωση για τη διάρκεια του τραγουδιού
+                start_time.setText(formatTime(Duration.ZERO));  // Αρχική ώρα εκκίνησης στο 0
+                end_time.setText(formatTime(media.getDuration())); // Ενημερώνουμε την ώρα λήξης
+            });
+    
+            // Ρύθμιση Play/Pause button
+            play_button.setText("Pause");
+            play_button.setOnAction(event -> {
+                if (mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
+                    mediaPlayer.pause(); // Παύση του τραγουδιού
+                    play_button.setText("Play"); // Εμφανίζουμε το κουμπί Play
+                } else {
+                    mediaPlayer.play(); // Συνέχιση του τραγουδιού
+                    play_button.setText("Pause"); // Εμφανίζουμε το κουμπί Pause
+                }
+            });
+    
+            // Ρύθμιση του volume slider
+            vol_slide.valueProperty().addListener((observable, oldValue, newValue) -> {
+                mediaPlayer.setVolume(newValue.doubleValue() / 100.0); // Αλλαγή έντασης από 0-100 σε 0.0-1.0
+            });
+    
+            // Ενημέρωση της θέσης του τραγουδιού μέσω του slider
+            slide_song.valueProperty().addListener((observable, oldValue, newValue) -> {
+                if (newValue.doubleValue() != oldValue.doubleValue()) {
+                    mediaPlayer.seek(Duration.seconds(newValue.doubleValue())); // Άμεση αναζήτηση στη νέα θέση
+                }
+            });
+    
+            // Ενημέρωση της κατάσταση του τραγουδιού όταν ολοκληρωθεί
+            mediaPlayer.setOnEndOfMedia(() -> {
+                play_button.setText("Play"); // Επαναφορά του κουμπιού Play
+            });
         }
-
-        // Δημιουργούμε νέο Media αντικείμενο με το URL του stream
-        this.currentStreamUrl = streamUrl;
-        Media media = new Media(streamUrl);
-        mediaPlayer = new MediaPlayer(media);
-
-        // Όταν το mediaPlayer είναι έτοιμο για αναπαραγωγή, το ξεκινάμε αμέσως
-        mediaPlayer.setOnReady(() -> {
-            // Εξασφαλίζουμε ότι το τραγούδι ξεκινά από την αρχή
-            mediaPlayer.seek(Duration.ZERO);  // Θέτουμε την τρέχουσα θέση στο 0, για να ξεκινήσει το τραγούδι σωστά
-            mediaPlayer.play(); // Ξεκινάμε την αναπαραγωγή
-
-            // Ενημερώνουμε το πεδίο "Now Playing" με το όνομα του τραγουδιού
-            String songTitle = media.getSource().substring(media.getSource().lastIndexOf("/") + 1);  // Λαμβάνουμε το όνομα του τραγουδιού από το URL
-            song_name.setText("Now Playing: " + songTitle);  // Ενημερώνουμε το "Now Playing" μόνο όταν το τραγούδι ξεκινήσει να παίζει
-
-            slide_song.setMax(media.getDuration().toSeconds()); // Ορίζουμε το max του slider ίσο με τη διάρκεια του τραγουδιού
-            vol_slide.setValue(50);  // Αρχική ένταση 50%
-            slide_song.setValue(0);  // Ξεκινάμε το slider στο 0
-
-            // Ενημέρωση για τη διάρκεια του τραγουδιού
-            start_time.setText(formatTime(Duration.ZERO));  // Αρχική ώρα εκκίνησης στο 0
-            end_time.setText(formatTime(media.getDuration())); // Ενημερώνουμε την ώρα λήξης
-        });
-
-        // Ρύθμιση Play/Pause button
-        play_button.setText("Pause");
-        play_button.setOnAction(event -> {
-            if (mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
-                mediaPlayer.pause(); // Παύση του τραγουδιού
-                play_button.setText("Play"); // Εμφανίζουμε το κουμπί Play
-            } else {
-                mediaPlayer.play(); // Συνέχιση του τραγουδιού
-                play_button.setText("Pause"); // Εμφανίζουμε το κουμπί Pause
-            }
-        });
-
-        // Ρύθμιση του volume slider
-        vol_slide.valueProperty().addListener((observable, oldValue, newValue) -> {
-            mediaPlayer.setVolume(newValue.doubleValue() / 100.0); // Αλλαγή έντασης από 0-100 σε 0.0-1.0
-        });
-
-        // Ενημέρωση της θέσης του τραγουδιού μέσω του slider
-        slide_song.valueProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue.doubleValue() != oldValue.doubleValue()) {
-                mediaPlayer.seek(Duration.seconds(newValue.doubleValue())); // Άμεση αναζήτηση στη νέα θέση
-            }
-        });
-
-        // Ενημέρωση της κατάσταση του τραγουδιού όταν ολοκληρωθεί
-        mediaPlayer.setOnEndOfMedia(() -> {
-            play_button.setText("Play"); // Επαναφορά του κουμπιού Play
-        });
-    }
 
     // Μέθοδος για να φορμάρουμε την ώρα
     private String formatTime(Duration duration) {
@@ -617,6 +624,25 @@ public class MusicPlayerController {
             System.out.println("Last Selected Metadata:\n" + lastSelectedSongMetadata);
         } else {
             System.out.println("No item selected.");
+        }
+    }
+    
+    
+    private void sendDataToDatabase(String songName, String songUrl) {
+        String databaseUrl = "jdbc:mysql://localhost:3306/music_player";
+        String username = "root";
+        String password = "12345";
+
+        try (Connection connection = DriverManager.getConnection(databaseUrl, username, password)) {
+            String insertQuery = "INSERT INTO songs (name, url) VALUES (?, ?)";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
+                preparedStatement.setString(1, songName);
+                preparedStatement.setString(2, songUrl);
+                int rowsAffected = preparedStatement.executeUpdate();
+                System.out.println("Song data sent to the database. Rows affected: " + rowsAffected);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error sending song data to database: " + e.getMessage());
         }
     }
 }
