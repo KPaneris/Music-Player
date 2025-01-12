@@ -21,7 +21,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="FrameMusicPlayer" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="750.0" prefWidth="772.0" styleClass="body-background" stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.demo1.MusicPlayerController">
+<AnchorPane fx:id="FrameMusicPlayer" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="618.0" prefWidth="810.0" styleClass="body-background" stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.demo1.MusicPlayerController">
    <children>
       <BorderPane layoutY="22.0" prefHeight="500.0" prefWidth="784.0" stylesheets="@css/style.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <top>
@@ -160,24 +160,26 @@
             </Pane>
          </left>
          <center>
-            <Pane focusTraversable="true" prefHeight="323.0" prefWidth="407.0" BorderPane.alignment="CENTER">
+            <Pane focusTraversable="true" prefHeight="359.0" prefWidth="674.0" BorderPane.alignment="CENTER">
                <children>
-                  <ListView fx:id="resultsList" layoutX="105.0" layoutY="-17.0" onMouseClicked="#handleSearch" prefHeight="444.0" prefWidth="300.0" style="-fx-background-color: #003A46; -fx-control-inner-background: #003A46; -fx-border-color: transparent;" />
+                  <ListView fx:id="resultsList" layoutX="105.0" layoutY="-17.0" onMouseClicked="#handleSearch" prefHeight="270.0" prefWidth="296.0" style="-fx-background-color: #003A46; -fx-control-inner-background: #003A46; -fx-border-color: transparent;" />
+                  <ListView fx:id="recentSearchesList" layoutX="421.0" layoutY="14.0" prefHeight="328.0" prefWidth="268.0" style="-fx-background-color: #003A46; -fx-control-inner-background: #003A46; -fx-border-color: transparent; " />
                </children>
             </Pane>
          </center>
          <bottom>
-            <Pane prefHeight="200.0" prefWidth="60.0" styleClass="bottom_bar_color" stylesheets="@css/style.css" BorderPane.alignment="CENTER">
+            <Pane prefHeight="173.0" prefWidth="784.0" styleClass="bottom_bar_color" stylesheets="@css/style.css" BorderPane.alignment="CENTER">
                <children>
-                  <Button fx:id="play_button" layoutX="297.0" layoutY="97.0" mnemonicParsing="false" prefHeight="63.0" prefWidth="97.0" styleClass="button_media" stylesheets="@css/style.css" text="Play" />
-                  <Button fx:id="next_button" layoutX="431.0" layoutY="97.0" onAction="#handleNextButtonAction" prefHeight="62.0" prefWidth="64.0" styleClass="button_media" stylesheets="@css/style.css">
+                  <Button fx:id="play_button" layoutX="299.0" layoutY="89.0" mnemonicParsing="false" prefHeight="73.0" prefWidth="78.0" styleClass="button_media" stylesheets="@css/style.css" text="Play" />
+                  <Button fx:id="next_button" layoutX="426.0" layoutY="90.0" onAction="#handleNextButtonAction" prefHeight="71.0" prefWidth="69.0" styleClass="button_media" stylesheets="@css/style.css">
                      <graphic>
                         <ImageView fitHeight="41.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
                            <image>
                               <Image url="@imag/next.png" />
                            </image>
                         </ImageView>
-                     </graphic></Button>
+                     </graphic>
+                  </Button>
                   <Button fx:id="back_button" layoutX="177.0" layoutY="93.0" onAction="#handleBackButtonAction" prefHeight="50.0" prefWidth="39.0" styleClass="button_media" stylesheets="@css/style.css">
                      <graphic>
                         <ImageView fitHeight="44.0" fitWidth="58.0" pickOnBounds="true" preserveRatio="true">
@@ -185,22 +187,20 @@
                               <Image url="@imag/back.png" />
                            </image>
                         </ImageView>
-                     </graphic></Button>
+                     </graphic>
+                  </Button>
                   <Slider fx:id="slide_song" layoutX="177.0" layoutY="53.0" prefHeight="14.0" prefWidth="324.0" />
                   <Label fx:id="start_time" layoutX="108.0" layoutY="51.0" prefHeight="19.0" prefWidth="35.0" text="00:00" textFill="WHITE" />
                   <Label fx:id="end_time" layoutX="526.0" layoutY="52.0" prefHeight="17.0" prefWidth="49.0" text="00:00" textFill="WHITE" />
                   <Slider fx:id="vol_slide" layoutX="550.0" layoutY="135.0" />
                   <Label layoutX="604.0" layoutY="119.0" prefHeight="17.0" prefWidth="33.0" text="VOL" textFill="WHITE" />
                   <Label fx:id="song_name" layoutX="311.0" layoutY="24.0" text="NO SONG" textFill="WHITE" />
-                  <Button layoutX="640.0" layoutY="33.0" mnemonicParsing="false" prefHeight="57.0" prefWidth="64.0" styleClass="button_media" stylesheets="@css/style.css">
-                     <graphic>
-                        <ImageView fitHeight="27.0" fitWidth="33.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@imag/love.png" />
-                           </image>
-                        </ImageView>
-                     </graphic>
-                  </Button>
+                  <Button layoutX="641.0" layoutY="32.0" mnemonicParsing="false" prefHeight="57.0" prefWidth="64.0" styleClass="button_media" stylesheets="@css/style.css" />
+                  <ImageView fitHeight="27.0" fitWidth="33.0" layoutX="659.0" layoutY="48.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@imag/love.png" />
+                     </image>
+                  </ImageView>
                </children>
             </Pane>
          </bottom>

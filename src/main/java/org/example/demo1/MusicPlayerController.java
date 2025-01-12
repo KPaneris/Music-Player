@@ -31,14 +31,7 @@ import java.util.Map;
 
 public class MusicPlayerController {
 
-
-    @FXML
-    private AnchorPane FrameMusicPlayer;
-
-
-
-//Media player
-
+    @FXML private AnchorPane FrameMusicPlayer;
     @FXML public Button back_button;
     @FXML public Label song_name;
     @FXML public Button pause_button;
@@ -47,50 +40,24 @@ public class MusicPlayerController {
     @FXML public Button next_button;
     @FXML public Slider slide_song;
     @FXML public Label start_time;
-    @FXML  public Label end_time;
+    @FXML public Label end_time;
+    @FXML private Button likeButton;
 
+    private String currentSong;
     private MediaPlayer mediaPlayer;
     private Media media;
     private String currentStreamUrl;
 
-
-
-
-    @FXML
-    public TextField searchbar;
-    @FXML
-    TextField searchBar;
-    @FXML
-    public ComboBox<String> searchMode;
-    @FXML
-    ListView<String> resultsList;
-
-
-
-
-    @FXML
-    private Button artist, playlist, mood, settings, love, home, list;
-
-
-
-
-    @FXML
-    private PlaylistItem lastSelectedSongMetadata;
-
-
-    @FXML
-    private MainApp mainApp;
-
-
-
-
-    @FXML
-    Map<String, ItemInfo> trackMap = new HashMap<>();
-
-
-    @FXML
-    private final List<String> recentSearches = new LinkedList<>(); // Store recent searches
-
+    @FXML TextField searchBar;
+    @FXML public TextField searchbar;
+    @FXML public ComboBox<String> searchMode;
+    @FXML ListView<String> recentSearchesList;
+    @FXML ListView<String> resultsList;
+    @FXML private Button artist, playlist, mood, settings, love, home, list;
+    @FXML private PlaylistItem lastSelectedSongMetadata;
+    @FXML private MainApp mainApp;
+    @FXML Map<String, ItemInfo> trackMap = new HashMap<>();
+    @FXML private final List<String> recentSearches = new LinkedList<>(); // Store recent searches
 
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -159,7 +126,7 @@ public class MusicPlayerController {
                     // Ensure you do not exceed the 10-song limit
                     if (recentSearches.size() < 10) {
                         recentSearches.add(line);
-
+                        recentSearchesList.getItems().add(line);
                     }
                 }
                 System.out.println("Recent searches loaded from file.");
@@ -220,16 +187,14 @@ public class MusicPlayerController {
         });
     }
 
-
-
     // This is the correct method for adding a song to recent searches
     private void addToRecentSearches(String songName, ItemInfo itemInfo) {
         if (recentSearches.size() >= 10) {
             String removedItem = recentSearches.remove(0); // Remove the oldest search if the list exceeds the limit
-
+            recentSearchesList.getItems().remove(removedItem);
         }
         recentSearches.add(songName);
-
+        recentSearchesList.getItems().add(songName);
 
         // Update the trackMap with the song metadata and track URL
         trackMap.put(songName, itemInfo);
@@ -367,63 +332,79 @@ public class MusicPlayerController {
     }
 
     void playStreamUrl(String streamUrl) {
-        // Σταματάμε την προηγούμενη αναπαραγωγή, αν υπάρχει
+        // Stop the previous playback, if any
         if (mediaPlayer != null && mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
             mediaPlayer.stop();
         }
 
-        // Δημιουργούμε νέο Media αντικείμενο με το URL του stream
+        // Create a new Media object with the stream URL
         this.currentStreamUrl = streamUrl;
         Media media = new Media(streamUrl);
         mediaPlayer = new MediaPlayer(media);
 
-        // Όταν το mediaPlayer είναι έτοιμο για αναπαραγωγή, το ξεκινάμε αμέσως
+        // When the mediaPlayer is ready to play, start playback immediately
         mediaPlayer.setOnReady(() -> {
-            // Εξασφαλίζουμε ότι το τραγούδι ξεκινά από την αρχή
-            mediaPlayer.seek(Duration.ZERO);  // Θέτουμε την τρέχουσα θέση στο 0, για να ξεκινήσει το τραγούδι σωστά
-            mediaPlayer.play(); // Ξεκινάμε την αναπαραγωγή
+            mediaPlayer.seek(Duration.ZERO); // Ensure the song starts from the beginning
+            mediaPlayer.play(); // Start playback
 
-            // Ενημερώνουμε το πεδίο "Now Playing" με το όνομα του τραγουδιού
-            String songTitle = media.getSource().substring(media.getSource().lastIndexOf("/") + 1);  // Λαμβάνουμε το όνομα του τραγουδιού από το URL
-            song_name.setText("Now Playing: " + songTitle);  // Ενημερώνουμε το "Now Playing" μόνο όταν το τραγούδι ξεκινήσει να παίζει
+            // Extract song name from the URL (or metadata if available)
+            String songTitle = extractSongNameFromUrl(streamUrl);
+            song_name.setText(songTitle); // Display only the song name
 
-            slide_song.setMax(media.getDuration().toSeconds()); // Ορίζουμε το max του slider ίσο με τη διάρκεια του τραγουδιού
-            vol_slide.setValue(50);  // Αρχική ένταση 50%
-            slide_song.setValue(0);  // Ξεκινάμε το slider στο 0
+            // Set slider maximum value to the song's duration
+            slide_song.setMax(media.getDuration().toSeconds());
+            vol_slide.setValue(50); // Set initial volume to 50%
+            slide_song.setValue(0); // Start the slider at 0
 
-            // Ενημέρωση για τη διάρκεια του τραγουδιού
-            start_time.setText(formatTime(Duration.ZERO));  // Αρχική ώρα εκκίνησης στο 0
-            end_time.setText(formatTime(media.getDuration())); // Ενημερώνουμε την ώρα λήξης
+            // Update the song's duration display
+            start_time.setText(formatTime(Duration.ZERO));
+            end_time.setText(formatTime(media.getDuration()));
         });
 
-        // Ρύθμιση Play/Pause button
+        // Bind the slider to the song's current playback time
+        mediaPlayer.currentTimeProperty().addListener((observable, oldTime, newTime) -> {
+            slide_song.setValue(newTime.toSeconds());
+            start_time.setText(formatTime(newTime)); // Update start time as the song plays
+        });
+
+        // Configure Play/Pause button
         play_button.setText("Pause");
         play_button.setOnAction(event -> {
             if (mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
-                mediaPlayer.pause(); // Παύση του τραγουδιού
-                play_button.setText("Play"); // Εμφανίζουμε το κουμπί Play
+                mediaPlayer.pause();
+                play_button.setText("Play");
             } else {
-                mediaPlayer.play(); // Συνέχιση του τραγουδιού
-                play_button.setText("Pause"); // Εμφανίζουμε το κουμπί Pause
+                mediaPlayer.play();
+                play_button.setText("Pause");
             }
         });
 
-        // Ρύθμιση του volume slider
+        // Configure the volume slider
         vol_slide.valueProperty().addListener((observable, oldValue, newValue) -> {
-            mediaPlayer.setVolume(newValue.doubleValue() / 100.0); // Αλλαγή έντασης από 0-100 σε 0.0-1.0
+            mediaPlayer.setVolume(newValue.doubleValue() / 100.0); // Convert volume to 0.0–1.0 range
         });
 
-        // Ενημέρωση της θέσης του τραγουδιού μέσω του slider
-        slide_song.valueProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue.doubleValue() != oldValue.doubleValue()) {
-                mediaPlayer.seek(Duration.seconds(newValue.doubleValue())); // Άμεση αναζήτηση στη νέα θέση
-            }
-        });
+        // Allow user to seek through the song using the slider
+        slide_song.setOnMousePressed(event -> mediaPlayer.seek(Duration.seconds(slide_song.getValue())));
+        slide_song.setOnMouseDragged(event -> mediaPlayer.seek(Duration.seconds(slide_song.getValue())));
 
-        // Ενημέρωση της κατάσταση του τραγουδιού όταν ολοκληρωθεί
+        // Reset playback state when the song finishes
         mediaPlayer.setOnEndOfMedia(() -> {
-            play_button.setText("Play"); // Επαναφορά του κουμπιού Play
+            play_button.setText("Play"); // Reset the Play button text
+            slide_song.setValue(0); // Reset the slider
+            start_time.setText(formatTime(Duration.ZERO)); // Reset the start time
         });
+    }
+
+    //Method to extract song name from URL
+    private String extractSongNameFromUrl(String url) {
+        // Check if the URL has a query string, and extract the file name accordingly
+        String songTitle = url.substring(url.lastIndexOf("/") + 1); // Get the part after the last "/"
+        int queryIndex = songTitle.indexOf("?");
+        if (queryIndex != -1) {
+            songTitle = songTitle.substring(0, queryIndex); // Remove any query parameters
+        }
+        return songTitle;
     }
 
     // Μέθοδος για να φορμάρουμε την ώρα
@@ -433,27 +414,27 @@ public class MusicPlayerController {
         return String.format("%02d:%02d", minutes, seconds);
     }
 
-
-
     @FXML
     void handleListClick(MouseEvent event) {
-        if (event.getClickCount() == 1) {  // Όταν γίνει κλικ σε ένα τραγούδι
+        if (event.getClickCount() == 1) {  // When a song is clicked
             String selectedItem = resultsList.getSelectionModel().getSelectedItem();
             if (selectedItem != null) {
-                ItemInfo selectedItemInfo = trackMap.get(selectedItem);
-                if (selectedItemInfo != null && "track".equals(selectedItemInfo.getType())) {
+                ItemInfo selectedItemInfo = trackMap.get(selectedItem); // Assume trackMap holds the song details
+                if (selectedItemInfo != null) {
+                    if ("track".equals(selectedItemInfo.getType())) {
 
-                    // Ενημέρωση του πεδίου Now Playing
-                    song_name.setText("Now Playing: " + selectedItem);  // Το όνομα του τραγουδιού από τη λίστα
+                        // Add to recent searches (if desired)
+                        addToRecentSearches(selectedItem, selectedItemInfo);
 
-                    // Προσθήκη του τραγουδιού στη λίστα των πρόσφατων αναζητήσεων
-                    addToRecentSearches(selectedItem, selectedItemInfo);
+                        // Update the "Now Playing" label with the song name directly (not "Now Playing: stream")
+                        song_name.setText(selectedItem);  // Show just the song name
 
-                    // Παίζουμε το τραγούδι
-                    playStreamUrl(selectedItemInfo.getTrackUrl());
+                        // Play the stream URL for the selected song
+                        playStreamUrl(selectedItemInfo.getTrackUrl());
 
-                    // Κλείνουμε τη λίστα αποτελεσμάτων
-                    resultsList.setVisible(false);
+                        // Hide the result list after selection (optional)
+                        resultsList.setVisible(false);
+                    }
                 }
             }
         }
