@@ -1,25 +1,28 @@
 package org.example.demo1;
 
 
+import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
+import javafx.scene.layout.*;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
-import javafx.scene.media.MediaView;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.example.demo1.utils.ApiClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import javax.swing.*;
+
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -31,17 +34,19 @@ import java.util.Map;
 
 public class MusicPlayerController {
 
+    @FXML  public Pane center_pane;
+    @FXML public Button love_media;
+    @FXML public Button playlist_media;
     @FXML private AnchorPane FrameMusicPlayer;
     @FXML public Button back_button;
     @FXML public Label song_name;
-    @FXML public Button pause_button;
     @FXML public Button play_button;
     @FXML public Slider vol_slide;
     @FXML public Button next_button;
     @FXML public Slider slide_song;
     @FXML public Label start_time;
     @FXML public Label end_time;
-    @FXML private Button likeButton;
+
 
     private String currentSong;
     private MediaPlayer mediaPlayer;
@@ -49,7 +54,6 @@ public class MusicPlayerController {
     private String currentStreamUrl;
 
     @FXML TextField searchBar;
-    @FXML public TextField searchbar;
     @FXML public ComboBox<String> searchMode;
     @FXML ListView<String> recentSearchesList;
     @FXML ListView<String> resultsList;
@@ -263,14 +267,9 @@ public class MusicPlayerController {
                 if ("Songs".equals(mode)) {
                     String streamUrl = "https://discoveryprovider2.audius.co/v1/tracks/" + itemId + "/stream";
                     trackMap.put(displayText, new ItemInfo(itemId, "track", null, streamUrl));
-                } else {
-                    String itemType = switch (mode) {
-                        case "Artists" -> "artist";
-                        case "Albums" -> "album";
-                        case "Playlists" -> "playlist";
-                        default -> throw new IllegalArgumentException("Unsupported mode: " + mode);
-                    };
-                    trackMap.put(displayText, new ItemInfo(itemId, itemType, null, null));
+                } else if ("Playlists".equals(mode)) {
+                    // Handle playlists separately, adding click event
+                    trackMap.put(displayText, new ItemInfo(itemId, "playlist", null, null));
                 }
                 resultsList.getItems().add(displayText);
             } else {
@@ -416,29 +415,367 @@ public class MusicPlayerController {
 
     @FXML
     void handleListClick(MouseEvent event) {
-        if (event.getClickCount() == 1) {  // When a song is clicked
+        // Handle click on a result item (single click)
+        if (event.getClickCount() == 1) {
             String selectedItem = resultsList.getSelectionModel().getSelectedItem();
             if (selectedItem != null) {
-                ItemInfo selectedItemInfo = trackMap.get(selectedItem); // Assume trackMap holds the song details
+                ItemInfo selectedItemInfo = trackMap.get(selectedItem); // Assume trackMap holds the item details
+
                 if (selectedItemInfo != null) {
-                    if ("track".equals(selectedItemInfo.getType())) {
+                    // Check the type of the selected item and act accordingly
+                    switch (selectedItemInfo.getType()) {
+                        case "track":  // If it's a song (track)
+                            // Add to recent searches (optional)
+                            addToRecentSearches(selectedItem, selectedItemInfo);
 
-                        // Add to recent searches (if desired)
-                        addToRecentSearches(selectedItem, selectedItemInfo);
+                            // Update the "Now Playing" label with the song name
+                            song_name.setText(selectedItem);  // Show just the song name
 
-                        // Update the "Now Playing" label with the song name directly (not "Now Playing: stream")
-                        song_name.setText(selectedItem);  // Show just the song name
+                            // Play the stream URL for the selected song
+                            playStreamUrl(selectedItemInfo.getTrackUrl());
 
-                        // Play the stream URL for the selected song
-                        playStreamUrl(selectedItemInfo.getTrackUrl());
+                            // Hide the result list after selection (optional)
+                            resultsList.setVisible(false);
+                            break;
 
-                        // Hide the result list after selection (optional)
-                        resultsList.setVisible(false);
+                        case "playlist":  // If it's a playlist
+                            loadPlaylistDetails(selectedItemInfo.getId());
+                            break;
+
+                        case "album":  // If it's an album
+                            loadAlbumDetails(selectedItemInfo.getId());
+                            break;
+
+                        case "artist":  // If it's an artist
+                            loadArtistDetails(selectedItemInfo.getId());
+                            break;
+
+                        default:
+                            System.out.println("Unknown item type: " + selectedItemInfo.getType());
+                            showErrorMessage("Unknown item type: " + selectedItemInfo.getType());
+                            break;
                     }
                 }
             }
         }
     }
+
+    private void loadArtistDetails(String artistId) {
+        new Thread(() -> {
+            try {
+                // Fetch artist data from the API
+                String apiUrl = "https://discoveryprovider2.audius.co/v1/users/" + artistId + "/tracks";
+                String response = ApiClient.fetchData(apiUrl);
+                JSONObject artistData = new JSONObject(response);
+
+                JSONArray tracks = artistData.optJSONArray("data");
+
+                if (tracks != null) {
+                    Platform.runLater(() -> {
+                        // Display artist name and tracks in the center_pane
+                        displayArtistInCenterPane(artistData.getString("name"), tracks);
+                    });
+                } else {
+                    showErrorMessage("No tracks found for this artist.");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                showErrorMessage("Error fetching artist data: " + e.getMessage());
+            }
+        }).start();
+    }
+
+    private void displayArtistInCenterPane(String artistName, JSONArray tracks) {
+        // Clear the center_pane before adding new content
+        center_pane.getChildren().clear();
+
+        // Display the artist name at the top
+        Label artistLabel = new Label("Artist: " + artistName);
+        artistLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
+        center_pane.getChildren().add(artistLabel);
+
+        // Display the track list for the artist
+        VBox trackList = new VBox();
+        trackList.setSpacing(10);
+
+        for (int i = 0; i < tracks.length(); i++) {
+            JSONObject track = tracks.optJSONObject(i);
+            String trackTitle = track.optString("title", "Unknown Track");
+
+            // Create a label for each track
+            Label trackLabel = new Label((i + 1) + ". " + trackTitle);
+            trackLabel.setStyle("-fx-font-size: 14px;");
+            trackLabel.setOnMouseClicked(event -> handleTrackClick(track)); // Set click event for tracks
+            trackList.getChildren().add(trackLabel);
+        }
+
+        // Add the track list to the center_pane
+        center_pane.getChildren().add(trackList);
+    }
+
+    private void handleTrackClick(JSONObject track) {
+        // This method will handle clicks on individual tracks in the artist view
+        String trackTitle = track.optString("title", "Unknown Track");
+        String trackUrl = track.optString("url", ""); // Assuming each track has a URL
+
+        if (!trackUrl.isEmpty()) {
+            song_name.setText(trackTitle);  // Show song name in the "Now Playing" label
+            playStreamUrl(trackUrl);        // Play the track URL
+        } else {
+            showErrorMessage("Track URL not available for: " + trackTitle);
+        }
+    }
+
+    private void loadAlbumDetails(String albumId) {
+        new Thread(() -> {
+            try {
+                // Fetch album data from the API
+                String apiUrl = "https://discoveryprovider2.audius.co/v1/albums/" + albumId;
+                String response = ApiClient.fetchData(apiUrl);
+                JSONObject albumData = new JSONObject(response);
+
+                JSONArray tracks = albumData.optJSONArray("tracks");
+
+                if (tracks != null) {
+                    Platform.runLater(() -> {
+                        // Display album name and tracks in the center_pane
+                        displayAlbumInCenterPane(albumData, tracks);
+                    });
+                } else {
+                    showErrorMessage("No tracks found for this album.");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                showErrorMessage("Error fetching album data: " + e.getMessage());
+            }
+        }).start();
+        
+    }
+
+    private void displayAlbumInCenterPane(JSONObject albumData, JSONArray tracks) {
+
+        // Clear the center_pane before adding new content
+        center_pane.getChildren().clear();
+
+        // Set the size of the center_pane
+        center_pane.setPrefWidth(1254);
+        center_pane.setPrefHeight(513);
+
+        // Create a container for all the content
+        VBox entireContent = new VBox(10); // 10px spacing between each part of the content
+        entireContent.setStyle("-fx-alignment: top-center; -fx-padding: 20px;");
+
+        // Album header with title, album cover, and artist name
+        VBox albumHeader = new VBox(10); // 10px spacing between title, album cover, and stats
+        albumHeader.setStyle("-fx-alignment: center; -fx-padding: 20px;");
+
+        // Album title with styling
+        String albumName = albumData.optString("album_name", "Unknown Album");
+        Label albumLabel = new Label("Album: " + albumName);
+        albumLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;");
+        albumHeader.getChildren().add(albumLabel);
+
+        // Get the artist name from the album data
+        String artistName = albumData.optString("user_name", "Unknown Artist");
+        Label artistLabel = new Label("Artist: " + artistName);
+        artistLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #34495E;");
+        albumHeader.getChildren().add(artistLabel);
+
+        // Get the album cover (if available)
+        String albumCoverUrl = albumData.optString("cover_art", "");
+        if (!albumCoverUrl.isEmpty()) {
+            ImageView albumCoverImage = new ImageView(new Image(albumCoverUrl));
+            albumCoverImage.setFitWidth(250); // Set fixed width for consistency
+            albumCoverImage.setFitHeight(250); // Set fixed height
+            albumCoverImage.setPreserveRatio(true); // Preserve aspect ratio
+            albumHeader.getChildren().add(albumCoverImage);
+        }
+
+        // Add the album header to the entire content container
+        entireContent.getChildren().add(albumHeader);
+
+        // Create a container for the track list
+        VBox trackList = new VBox(10); // 10px spacing between tracks
+        trackList.setStyle("-fx-padding: 10px; -fx-alignment: top-left;");
+
+        // Add each track's details
+        for (int i = 0; i < tracks.length(); i++) {
+            JSONObject track = tracks.optJSONObject(i);
+            if (track == null) continue;
+
+            String trackTitle = track.optString("title", "Unknown Track");
+            String trackArtist = track.optString("user_name", "Unknown Artist");
+            String trackLength = formatDuration(track.optInt("duration", 0)); // Assuming 'duration' is in seconds
+            int playCount = track.optInt("plays", 0);
+            int repostCount = track.optInt("reposts", 0);
+            String addedDate = track.optString("added_at", "Unknown Date"); // Assuming the added date is available
+
+            // Create a container for each track with a clean layout (Horizontal arrangement)
+            HBox trackBox = new HBox(10); // 10px spacing between elements in the track box
+            trackBox.setStyle("-fx-alignment: center-left; -fx-padding: 5px; -fx-background-color: #ECF0F1; -fx-border-radius: 5px; -fx-border-width: 1px; -fx-border-color: #BDC3C7;");
+
+            // Track number label
+            Label trackNumberLabel = new Label((i + 1) + ". ");
+            trackNumberLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #34495E;");
+
+            // Track name and artist
+            Label trackNameLabel = new Label(trackTitle + " by " + trackArtist);
+            trackNameLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #34495E;");
+
+            // Track length, plays, reposts, and added date labels
+            Label lengthLabel = new Label("Length: " + trackLength);
+            Label playsLabel = new Label("Plays: " + playCount);
+            Label repostsLabel = new Label("Reposts: " + repostCount);
+            Label addedLabel = new Label("Added: " + addedDate);
+
+            // Add all the track info into the trackBox
+            trackBox.getChildren().addAll(trackNumberLabel, trackNameLabel, lengthLabel, playsLabel, repostsLabel, addedLabel);
+
+            // Add the track box to the track list
+            trackList.getChildren().add(trackBox);
+
+            // Add mouse click handler for tracks (optional)
+            trackBox.setOnMouseClicked(event -> handleTrackClick(track));
+        }
+
+        // Add the track list to the entire content container
+        entireContent.getChildren().add(trackList);
+
+        // Wrap the entire content container (header + track list) in a ScrollPane to allow scrolling
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setContent(entireContent);  // Set the entire content as the scrollable content
+        scrollPane.setFitToWidth(true); // Make scroll pane width match the center_pane width
+        scrollPane.setStyle("-fx-background-color: transparent;");
+
+        // Set a fixed height for the scrollPane to enable scrolling
+        scrollPane.setPrefHeight(513); // Match the height of the center_pane or adjust as needed
+
+        // Create a StackPane to center the ScrollPane inside the center_pane
+        StackPane centeredPane = new StackPane();
+        centeredPane.setAlignment(Pos.CENTER); // Center the content both horizontally and vertically
+        centeredPane.getChildren().add(scrollPane);  // Add the ScrollPane to the StackPane
+
+        // Add the StackPane (which centers the ScrollPane) to the center_pane
+        center_pane.getChildren().add(centeredPane);
+    }
+
+
+
+
+
+
+    private void loadPlaylistDetails(String playlistId) {
+        new Thread(() -> {
+            try {
+                String apiUrl = "https://discoveryprovider2.audius.co/v1/playlists/" + playlistId + "/tracks";
+                String response = ApiClient.fetchData(apiUrl);
+                JSONObject playlistData = new JSONObject(response);
+
+                String playlistTitle = playlistData.optString("playlist_name", "Unknown Playlist");
+                String albumCoverUrl = playlistData.optString("cover_art", "");
+
+                JSONArray tracks = playlistData.optJSONArray("data");
+
+                if (tracks != null) {
+                    Platform.runLater(() -> displayPlaylistInCenterPane(playlistTitle, albumCoverUrl, tracks));
+                } else {
+                    Platform.runLater(() -> showPopupMessage("No tracks found in this playlist."));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                Platform.runLater(() -> showPopupMessage("Error fetching playlist data: " + e.getMessage()));
+            }
+        }).start();
+    }
+
+    private void displayPlaylistInCenterPane(String playlistTitle, String albumCoverUrl, JSONArray tracks) {
+        center_pane.getChildren().clear();
+        center_pane.setPrefWidth(1254);
+        center_pane.setPrefHeight(513);
+
+        VBox entireContent = new VBox(10);
+        entireContent.setStyle("-fx-alignment: top-center; -fx-padding: 20px;");
+
+        VBox playlistHeader = new VBox(10);
+        playlistHeader.setStyle("-fx-alignment: center; -fx-padding: 20px;");
+
+        Label playlistLabel = new Label(playlistTitle);
+        playlistLabel.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;");
+        playlistHeader.getChildren().add(playlistLabel);
+
+        if (!albumCoverUrl.isEmpty()) {
+            ImageView albumCoverImage = new ImageView(new Image(albumCoverUrl));
+            albumCoverImage.setFitWidth(250);
+            albumCoverImage.setFitHeight(250);
+            albumCoverImage.setPreserveRatio(true);
+            playlistHeader.getChildren().add(albumCoverImage);
+        }
+
+        entireContent.getChildren().add(playlistHeader);
+
+        VBox trackList = new VBox(10);
+        trackList.setStyle("-fx-padding: 10px; -fx-alignment: top-left;");
+
+        for (int i = 0; i < tracks.length(); i++) {
+            JSONObject track = tracks.optJSONObject(i);
+            if (track == null) continue;
+
+            String trackTitle = track.optString("title", "Unknown Track");
+            String trackArtist = track.optString("user_name", "Unknown Artist");
+
+            HBox trackBox = new HBox(10);
+            trackBox.setStyle("-fx-alignment: center-left; -fx-padding: 5px; -fx-background-color: #ECF0F1; -fx-border-radius: 5px; -fx-border-width: 1px; -fx-border-color: #BDC3C7;");
+
+            Label trackNumberLabel = new Label((i + 1) + ". ");
+            trackNumberLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #34495E;");
+
+            Label trackNameLabel = new Label(trackTitle + " by " + trackArtist);
+            trackNameLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #34495E;");
+
+            Button addToPlaylistButton = new Button("Add to Playlist");
+            addToPlaylistButton.setStyle("-fx-background-color: #3498DB; -fx-text-fill: white; -fx-font-weight: bold;");
+            addToPlaylistButton.setOnAction(event -> showPopupMessage("Added \"" + trackTitle + "\" to Playlist"));
+
+            Button addToLikedSongsButton = new Button("Add to Liked Songs");
+            addToLikedSongsButton.setStyle("-fx-background-color: #2ECC71; -fx-text-fill: white; -fx-font-weight: bold;");
+            addToLikedSongsButton.setOnAction(event -> showPopupMessage("Added \"" + trackTitle + "\" to Liked Songs"));
+
+            trackBox.getChildren().addAll(trackNumberLabel, trackNameLabel, addToPlaylistButton, addToLikedSongsButton);
+            trackList.getChildren().add(trackBox);
+        }
+
+        entireContent.getChildren().add(trackList);
+
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setContent(entireContent);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background-color: transparent;");
+        scrollPane.setPrefHeight(513);
+
+        StackPane centeredPane = new StackPane();
+        centeredPane.setAlignment(Pos.CENTER);
+        centeredPane.getChildren().add(scrollPane);
+
+        center_pane.getChildren().add(centeredPane);
+    }
+
+    private void showPopupMessage(String message) {
+
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Action Confirmation");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    // Helper method to format duration in seconds to a "mm:ss" format
+    private String formatDuration(int durationInSeconds) {
+        int minutes = durationInSeconds / 60;
+        int seconds = durationInSeconds % 60;
+        return String.format("%02d:%02d", minutes, seconds);
+    }
+
+
 
     private void showErrorMessage(String message) {
         Platform.runLater(() -> {
@@ -493,6 +830,130 @@ public class MusicPlayerController {
             }
         }
     }
+
+
+
+
+    //ETHO THA KANETE NA EMFANIZONTE OI ARTISt APO TO DATABASE
+    public void show_artist(ActionEvent actionEvent) {
+        // Create a VBox to hold the title and an empty list view for artists
+        VBox content = new VBox();
+        content.setSpacing(20);
+        content.setPadding(new Insets(20));
+
+        // Set the background color of the VBox to match the application theme
+        content.setBackground(new Background(new BackgroundFill(Color.web("#1F5F5B"), CornerRadii.EMPTY, Insets.EMPTY)));
+
+        // Add a title label with white text
+        Label titleLabel = new Label("My Artists");
+        titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-font-family: 'Arial'; -fx-text-fill: white;");
+
+        // Create an empty ListView to display a placeholder for artists
+        ListView<String> artistsListView = new ListView<>();
+        artistsListView.setPlaceholder(new Label("No artists available"));
+        artistsListView.setPrefHeight(200); // Set preferred height for the list view
+
+        // Add the title and list view to the VBox
+        content.getChildren().addAll(titleLabel, artistsListView);
+
+        // Stretch the VBox to fill the center pane
+        content.setPrefSize(center_pane.getWidth(), center_pane.getHeight());
+
+        // Clear the center pane and add the new content
+        center_pane.getChildren().clear();
+        center_pane.getChildren().add(content);
+
+        // Apply a fade-in transition for a smooth appearance
+        FadeTransition fadeIn = new FadeTransition(Duration.seconds(0.5), content);
+        fadeIn.setFromValue(0);
+        fadeIn.setToValue(1);
+        fadeIn.play();
+    }
+
+
+    //ETHO THA KANETE NA EMFANIZONTE TA PLAYLIST APO TO DATABASE
+    public void show_playlists(ActionEvent actionEvent) {
+        // Create a VBox to hold the title and an empty list view for playlists
+        VBox content = new VBox();
+        content.setSpacing(20);
+        content.setPadding(new Insets(20));
+
+        // Set the background color of the VBox to match the application theme
+        content.setBackground(new Background(new BackgroundFill(Color.web("#1F5F5B"), CornerRadii.EMPTY, Insets.EMPTY)));
+
+        // Add a title label with white text
+        Label titleLabel = new Label("My Playlists");
+        titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-font-family: 'Arial'; -fx-text-fill: white;");
+
+        // Create an empty ListView to display a placeholder for playlists
+        ListView<String> playlistsListView = new ListView<>();
+        playlistsListView.setPlaceholder(new Label("No playlists available"));
+        playlistsListView.setPrefHeight(200); // Set preferred height for the list view
+
+        // Add the title and list view to the VBox
+        content.getChildren().addAll(titleLabel, playlistsListView);
+
+        // Stretch the VBox to fill the center pane
+        content.setPrefSize(center_pane.getWidth(), center_pane.getHeight());
+
+        // Clear the center pane and add the new content
+        center_pane.getChildren().clear();
+        center_pane.getChildren().add(content);
+
+        // Apply a fade-in transition for a smooth appearance
+        FadeTransition fadeIn = new FadeTransition(Duration.seconds(0.5), content);
+        fadeIn.setFromValue(0);
+        fadeIn.setToValue(1);
+        fadeIn.play();
+    }
+
+
+    //ETHO THA KANETE NA EMFANIZONTE TA LIKED SONGS APO TO DATABASE
+    public void show_love_songs(ActionEvent actionEvent) {
+        // Create a VBox to hold the title and an empty list view
+        VBox content = new VBox();
+        content.setSpacing(20);
+        content.setPadding(new Insets(20));
+
+        // Set the background color of the VBox to match the application theme
+        content.setBackground(new Background(new BackgroundFill(Color.web("#1F5F5B"), CornerRadii.EMPTY, Insets.EMPTY)));
+
+        // Add a title label with white text
+        Label titleLabel = new Label("My Like Songs");
+        titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-font-family: 'Arial'; -fx-text-fill: white;");
+
+        // Create an empty ListView to display a placeholder for liked songs
+        ListView<String> songsListView = new ListView<>();
+        songsListView.setPlaceholder(new Label("No liked songs yet"));
+        songsListView.setPrefHeight(200); // Set preferred height for the list view
+
+        // Add the title and list view to the VBox
+        content.getChildren().addAll(titleLabel, songsListView);
+
+        // Stretch the VBox to fill the center pane
+        content.setPrefSize(center_pane.getWidth(), center_pane.getHeight());
+
+        // Clear the center pane and add the new content
+        center_pane.getChildren().clear();
+        center_pane.getChildren().add(content);
+
+        // Apply a fade-in transition for a smooth appearance
+        FadeTransition fadeIn = new FadeTransition(Duration.seconds(0.5), content);
+        fadeIn.setFromValue(0);
+        fadeIn.setToValue(1);
+        fadeIn.play();
+    }
+
+
+
+    //ETHO THA KANEIS NA PROSTHETETE TO TRAGOUTHI APO TO MEDIA STA LIKED SONGS me database
+    public void Add_to_love(ActionEvent actionEvent) {
+    }
+
+    //ETHO NA PROSTHETETE APO TO MEDIA STO MY  PLAYLIS  me database
+    public void ADD_to_playlist(ActionEvent actionEvent) {
+    }
+
 
     public static class ItemInfo {
         private String id;

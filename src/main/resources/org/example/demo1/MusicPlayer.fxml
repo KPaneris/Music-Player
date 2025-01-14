@@ -21,11 +21,11 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="FrameMusicPlayer" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="618.0" prefWidth="810.0" styleClass="body-background" stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.demo1.MusicPlayerController">
+<AnchorPane fx:id="FrameMusicPlayer" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1021.0" prefWidth="1254.0" styleClass="body-background" stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.demo1.MusicPlayerController">
    <children>
-      <BorderPane layoutY="22.0" prefHeight="500.0" prefWidth="784.0" stylesheets="@css/style.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <BorderPane layoutY="22.0" prefHeight="830.0" prefWidth="1247.0" stylesheets="@css/style.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <top>
-            <Pane prefHeight="85.0" prefWidth="739.0" styleClass="top-background" stylesheets="@css/style.css">
+            <Pane prefHeight="336.0" prefWidth="1254.0" styleClass="top-background" stylesheets="@css/style.css">
                <children>
                   <ImageView fitHeight="46.0" fitWidth="40.0" layoutX="22.0" layoutY="12.0" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -40,19 +40,9 @@
                      <font>
                         <Font size="14.0" />
                      </font></Label>
-                  <HBox alignment="CENTER" layoutX="232.0" layoutY="21.0" prefHeight="39.0" prefWidth="253.0" styleClass="search-background" stylesheets="@css/style.css">
+                  <HBox alignment="CENTER" layoutX="270.0" layoutY="20.0" prefHeight="39.0" prefWidth="242.0" styleClass="search-background" stylesheets="@css/style.css">
                      <children>
-                        <ImageView fitHeight="34.0" fitWidth="33.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@imag/search.png" />
-                           </image>
-                        </ImageView>
-                        <TextField fx:id="searchbar" promptText="Search..." styleClass="transparent" stylesheets="@css/style.css" />
-                     </children>
-                  </HBox>
-                  <HBox alignment="CENTER" layoutX="252.0" layoutY="21.0" prefHeight="39.0" prefWidth="200.0" styleClass="search-background" stylesheets="@css/style.css">
-                     <children>
-                        <ComboBox fx:id="searchMode" prefWidth="100.0" promptText="Select" styleClass="search-background" stylesheets="@css/style.css">
+                        <ComboBox fx:id="searchMode" prefHeight="25.0" prefWidth="114.0" promptText="Select" styleClass="search-background" stylesheets="@css/style.css">
                            <items>
                               <FXCollections fx:factory="observableArrayList">
                                  <String fx:value="Songs" />
@@ -62,11 +52,11 @@
                               </FXCollections>
                            </items>
                         </ComboBox>
-                        <TextField fx:id="searchBar" promptText="Search..." styleClass="transparent" stylesheets="@css/style.css" />
+                        <TextField fx:id="searchBar" prefHeight="25.0" prefWidth="137.0" promptText="Search..." styleClass="transparent" stylesheets="@css/style.css" />
                      </children>
                   </HBox>
                   <StackPane />
-                  <Button fx:id="mood" layoutX="558.0" layoutY="17.0" mnemonicParsing="false" prefHeight="34.0" prefWidth="38.0" styleClass="button-custom" stylesheets="@css/style.css">
+                  <Button fx:id="mood" layoutX="944.0" layoutY="211.0" mnemonicParsing="false" prefHeight="34.0" prefWidth="38.0" styleClass="button-custom" stylesheets="@css/style.css">
                      <graphic>
                         <ImageView fitHeight="27.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true">
                            <image>
@@ -75,7 +65,7 @@
                         </ImageView>
                      </graphic>
                   </Button>
-                  <Button id="  private Button actionButton;" fx:id="settings" layoutX="646.0" layoutY="17.0" mnemonicParsing="false" prefHeight="47.0" prefWidth="73.0" styleClass="button-custom" stylesheets="@css/style.css">
+                  <Button id="  private Button actionButton;" fx:id="settings" layoutX="943.0" layoutY="51.0" mnemonicParsing="false" prefHeight="47.0" prefWidth="73.0" styleClass="button-custom" stylesheets="@css/style.css">
                      <graphic>
                         <ImageView fitHeight="27.0" fitWidth="27.0" pickOnBounds="true" preserveRatio="true">
                            <image>
@@ -84,103 +74,114 @@
                         </ImageView>
                      </graphic>
                   </Button>
+                  <ListView fx:id="resultsList" layoutX="264.0" layoutY="69.0" onMouseClicked="#handleSearch" prefHeight="253.0" prefWidth="255.0" style="-fx-background-color: #003A46; -fx-control-inner-background: #003A46; -fx-border-color: transparent;" />
+                  <Button fx:id="list" layoutX="944.0" layoutY="133.0" mnemonicParsing="false" prefHeight="34.0" prefWidth="38.0" styleClass="button-custom" stylesheets="@css/style.css">
+                     <graphic>
+                        <ImageView id="list" fitHeight="27.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@imag/list.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <cursor>
+                        <Cursor fx:constant="W_RESIZE" />
+                     </cursor>
+                     <effect>
+                        <Lighting>
+                           <bumpInput>
+                              <Shadow />
+                           </bumpInput>
+                        </Lighting>
+                     </effect>
+                  </Button>
+                  <Button id="  private Button actionButton;" fx:id="home" layoutX="42.0" layoutY="68.0" mnemonicParsing="false" prefHeight="34.0" prefWidth="38.0" styleClass="button-custom" stylesheets="@css/style.css">
+                     <graphic>
+                        <ImageView fitHeight="27.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@imag/home.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+                  <Button id="  private Button actionButton;" fx:id="love" layoutX="42.0" layoutY="138.0" mnemonicParsing="false" onAction="#show_love_songs" prefHeight="34.0" prefWidth="38.0" styleClass="button-custom" stylesheets="@css/style.css">
+                     <graphic>
+                        <ImageView fitHeight="27.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@imag/love.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+                  <Button fx:id="playlist" layoutX="42.0" layoutY="202.0" mnemonicParsing="false" onAction="#show_playlists" prefHeight="34.0" prefWidth="38.0" styleClass="button-custom" stylesheets="@css/style.css">
+                     <graphic>
+                        <ImageView id="  private Button actionButton;" fitHeight="27.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@imag/playlist.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+                  <Button fx:id="artist" layoutX="42.0" layoutY="271.0" mnemonicParsing="false" onAction="#show_artist" prefHeight="34.0" prefWidth="38.0" styleClass="button-custom" stylesheets="@css/style.css">
+                     <graphic>
+                        <ImageView id="  private Button actionButton;" fitHeight="27.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@imag/artis.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+                  <Label layoutX="664.0" layoutY="28.0" text="HISTORY" textFill="WHITE">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Label>
+                  <ImageView fitHeight="27.0" fitWidth="27.0" layoutX="735.0" layoutY="28.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@imag/time-past.png" />
+                     </image>
+                  </ImageView>
+                  <ListView fx:id="recentSearchesList" layoutX="557.0" layoutY="67.0" prefHeight="256.0" prefWidth="312.0" style="-fx-background-color: #003A46; -fx-control-inner-background: #003A46; -fx-border-color: transparent; " />
+                  <ImageView fitHeight="34.0" fitWidth="33.0" layoutX="231.0" layoutY="23.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@imag/search.png" />
+                     </image>
+                  </ImageView>
                </children>
                <opaqueInsets>
                   <Insets />
                </opaqueInsets>
             </Pane>
          </top>
-         <left>
-            <Pane prefHeight="335.0" prefWidth="103.0" BorderPane.alignment="CENTER">
-               <children>
-                  <Pane layoutY="-5.0" prefHeight="337.0" prefWidth="105.0" stylesheets="@css/style.css">
-                     <children>
-                        <Button id="  private Button actionButton;" fx:id="love" layoutX="14.0" layoutY="129.0" mnemonicParsing="false" prefHeight="34.0" prefWidth="38.0" styleClass="button-custom" stylesheets="@css/style.css">
-                           <graphic>
-                              <ImageView fitHeight="27.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true">
-                                 <image>
-                                    <Image url="@imag/love.png" />
-                                 </image>
-                              </ImageView>
-                           </graphic>
-                        </Button>
-                        <Button fx:id="list" layoutX="13.0" mnemonicParsing="false" prefHeight="34.0" prefWidth="38.0" styleClass="button-custom" stylesheets="@css/style.css">
-                           <graphic>
-                              <ImageView id="list" fitHeight="27.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true">
-                                 <image>
-                                    <Image url="@imag/list.png" />
-                                 </image>
-                              </ImageView>
-                           </graphic>
-                           <cursor>
-                              <Cursor fx:constant="W_RESIZE" />
-                           </cursor>
-                           <effect>
-                              <Lighting>
-                                 <bumpInput>
-                                    <Shadow />
-                                 </bumpInput>
-                              </Lighting>
-                           </effect>
-                        </Button>
-                        <Button id="  private Button actionButton;" fx:id="home" layoutX="14.0" layoutY="64.0" mnemonicParsing="false" prefHeight="34.0" prefWidth="38.0" styleClass="button-custom" stylesheets="@css/style.css">
-                           <graphic>
-                              <ImageView fitHeight="27.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true">
-                                 <image>
-                                    <Image url="@imag/home.png" />
-                                 </image>
-                              </ImageView>
-                           </graphic>
-                        </Button>
-                        <Button fx:id="playlist" layoutX="13.0" layoutY="196.0" mnemonicParsing="false" prefHeight="34.0" prefWidth="38.0" styleClass="button-custom" stylesheets="@css/style.css">
-                           <graphic>
-                              <ImageView id="  private Button actionButton;" fitHeight="27.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true">
-                                 <image>
-                                    <Image url="@imag/playlist.png" />
-                                 </image>
-                              </ImageView>
-                           </graphic>
-                        </Button>
-                        <Button fx:id="artist" layoutX="14.0" layoutY="261.0" mnemonicParsing="false" prefHeight="34.0" prefWidth="38.0" styleClass="button-custom" stylesheets="@css/style.css">
-                           <graphic>
-                              <ImageView id="  private Button actionButton;" fitHeight="27.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true">
-                                 <image>
-                                    <Image url="@imag/artis.png" />
-                                 </image>
-                              </ImageView>
-                           </graphic>
-                        </Button>
-                     </children>
-                     <styleClass>
-                        <String fx:value="search-background" />
-                        <String fx:value="menu-bar-background" />
-                     </styleClass>
-                  </Pane>
-               </children>
-            </Pane>
-         </left>
-         <center>
-            <Pane focusTraversable="true" prefHeight="359.0" prefWidth="674.0" BorderPane.alignment="CENTER">
-               <children>
-                  <ListView fx:id="resultsList" layoutX="105.0" layoutY="-17.0" onMouseClicked="#handleSearch" prefHeight="270.0" prefWidth="296.0" style="-fx-background-color: #003A46; -fx-control-inner-background: #003A46; -fx-border-color: transparent;" />
-                  <ListView fx:id="recentSearchesList" layoutX="421.0" layoutY="14.0" prefHeight="328.0" prefWidth="268.0" style="-fx-background-color: #003A46; -fx-control-inner-background: #003A46; -fx-border-color: transparent; " />
-               </children>
-            </Pane>
-         </center>
          <bottom>
-            <Pane prefHeight="173.0" prefWidth="784.0" styleClass="bottom_bar_color" stylesheets="@css/style.css" BorderPane.alignment="CENTER">
+            <Pane prefHeight="167.0" prefWidth="1254.0" styleClass="bottom_bar_color" stylesheets="@css/style.css" BorderPane.alignment="CENTER">
                <children>
-                  <Button fx:id="play_button" layoutX="299.0" layoutY="89.0" mnemonicParsing="false" prefHeight="73.0" prefWidth="78.0" styleClass="button_media" stylesheets="@css/style.css" text="Play" />
-                  <Button fx:id="next_button" layoutX="426.0" layoutY="90.0" onAction="#handleNextButtonAction" prefHeight="71.0" prefWidth="69.0" styleClass="button_media" stylesheets="@css/style.css">
-                     <graphic>
-                        <ImageView fitHeight="41.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@imag/next.png" />
-                           </image>
-                        </ImageView>
-                     </graphic>
-                  </Button>
-                  <Button fx:id="back_button" layoutX="177.0" layoutY="93.0" onAction="#handleBackButtonAction" prefHeight="50.0" prefWidth="39.0" styleClass="button_media" stylesheets="@css/style.css">
+                  <HBox alignment="CENTER" layoutY="44.0" prefHeight="42.0" prefWidth="994.0">
+                     <children>
+                        <Label fx:id="start_time" prefHeight="19.0" prefWidth="35.0" text="00:00" textFill="WHITE">
+                           <font>
+                              <Font size="13.0" />
+                           </font>
+                        </Label>
+                        <Slider fx:id="slide_song" prefHeight="14.0" prefWidth="324.0" />
+                        <Label fx:id="end_time" prefHeight="17.0" prefWidth="49.0" text="00:00" textFill="WHITE">
+                           <font>
+                              <Font size="13.0" />
+                           </font>
+                        </Label>
+                        <Label prefHeight="17.0" prefWidth="33.0" text="VOL" textFill="WHITE">
+                           <font>
+                              <Font size="13.0" />
+                           </font>
+                        </Label>
+                        <Slider fx:id="vol_slide" />
+                     </children>
+                  </HBox>
+                  <Label fx:id="song_name" layoutX="411.0" layoutY="24.0" prefHeight="20.0" prefWidth="106.0" text="NO SONG" textFill="WHITE">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+                  <Button fx:id="back_button" layoutX="232.0" layoutY="92.0" onAction="#handleBackButtonAction" prefHeight="56.0" prefWidth="76.0" styleClass="button_media" stylesheets="@css/style.css">
                      <graphic>
                         <ImageView fitHeight="44.0" fitWidth="58.0" pickOnBounds="true" preserveRatio="true">
                            <image>
@@ -189,21 +190,40 @@
                         </ImageView>
                      </graphic>
                   </Button>
-                  <Slider fx:id="slide_song" layoutX="177.0" layoutY="53.0" prefHeight="14.0" prefWidth="324.0" />
-                  <Label fx:id="start_time" layoutX="108.0" layoutY="51.0" prefHeight="19.0" prefWidth="35.0" text="00:00" textFill="WHITE" />
-                  <Label fx:id="end_time" layoutX="526.0" layoutY="52.0" prefHeight="17.0" prefWidth="49.0" text="00:00" textFill="WHITE" />
-                  <Slider fx:id="vol_slide" layoutX="550.0" layoutY="135.0" />
-                  <Label layoutX="604.0" layoutY="119.0" prefHeight="17.0" prefWidth="33.0" text="VOL" textFill="WHITE" />
-                  <Label fx:id="song_name" layoutX="311.0" layoutY="24.0" text="NO SONG" textFill="WHITE" />
-                  <Button layoutX="641.0" layoutY="32.0" mnemonicParsing="false" prefHeight="57.0" prefWidth="64.0" styleClass="button_media" stylesheets="@css/style.css" />
-                  <ImageView fitHeight="27.0" fitWidth="33.0" layoutX="659.0" layoutY="48.0" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@imag/love.png" />
-                     </image>
-                  </ImageView>
+                  <Button fx:id="next_button" layoutX="568.0" layoutY="94.0" onAction="#handleNextButtonAction" prefHeight="57.0" prefWidth="76.0" styleClass="button_media" stylesheets="@css/style.css">
+                     <graphic>
+                        <ImageView fitHeight="41.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@imag/next.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+                  <Button fx:id="play_button" layoutX="411.0" layoutY="97.0" mnemonicParsing="false" prefHeight="58.0" prefWidth="85.0" styleClass="button_media" stylesheets="@css/style.css" text="Play" />
+                  <Button fx:id="love_media" layoutX="684.0" layoutY="100.0" mnemonicParsing="false" onAction="#Add_to_love" prefHeight="50.0" prefWidth="60.0" styleClass="button_media" stylesheets="@css/style.css">
+                     <graphic>
+                        <ImageView fitHeight="27.0" fitWidth="33.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@imag/love.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+                  <Button fx:id="playlist_media" layoutX="774.0" layoutY="100.0" mnemonicParsing="false" onAction="#ADD_to_playlist" prefHeight="50.0" prefWidth="60.0" styleClass="button_media" stylesheets="@css/style.css">
+                     <graphic>
+                        <ImageView fitHeight="27.0" fitWidth="33.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@imag/folder-music.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
                </children>
             </Pane>
          </bottom>
+         <center>
+            <Pane fx:id="center_pane" prefHeight="508.0" prefWidth="1252.0" BorderPane.alignment="CENTER" />
+         </center>
       </BorderPane>
    </children>
 </AnchorPane>
