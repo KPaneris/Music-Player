@@ -1109,6 +1109,7 @@ public class MusicPlayerController {
         }
     }
 
+    //used despite being gray, intellij issue, dont touch
     private ObservableList<String> returnSavedSongsToUi(int userId) {
         ObservableList<String> likedSongs = FXCollections.observableArrayList();
 
@@ -1271,6 +1272,7 @@ public class MusicPlayerController {
         }
     }
 
+    //used despite being gray, intellij issue, dont touch
     private void handleItemSelection(String selectedItem, ItemInfo itemInfo) {
         if (itemInfo != null) {
             System.out.println("Item selected: " + selectedItem + " of type: " + itemInfo.getType());
@@ -1330,6 +1332,7 @@ public class MusicPlayerController {
 
     }
 
+    //used despite being gray, intellij issue, dont touch
     @FXML
     private void showLastSelectedMetadata() {
         if (lastSelectedSongMetadata != null) {
