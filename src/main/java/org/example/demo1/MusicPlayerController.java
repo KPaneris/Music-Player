@@ -22,14 +22,18 @@ import javafx.util.Duration;
 import org.example.demo1.utils.ApiClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.example.demo1.LoginController;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.sql.Connection;
 
 
 public class MusicPlayerController {
@@ -52,6 +56,8 @@ public class MusicPlayerController {
     private MediaPlayer mediaPlayer;
     private Media media;
     private String currentStreamUrl;
+    private int currentUserId = -1;
+    private int userId;
 
     @FXML TextField searchBar;
     @FXML public ComboBox<String> searchMode;
@@ -67,6 +73,16 @@ public class MusicPlayerController {
         this.mainApp = mainApp;
     }
 
+    public void setUserId(int userId) {
+        this.userId = userId;
+        System.out.println("User ID set in MusicPlayerController: " + userId);
+
+
+        if (userId != -1) {
+            System.out.println("Welcome User ID: " + userId);
+        }
+    }
+
     @FXML
     public void initialize() {
         configureTooltips();
@@ -74,10 +90,13 @@ public class MusicPlayerController {
         configureResultsList();
         configureSettingsMenu();
 
+        int userId = LoginController.currentUserId;
+
         resultsList.getItems().clear(); // Clear results initially
         resultsList.setVisible(false); // Ensure no results are displayed at startup
         System.out.println("Controller initialized!");
         ObservableList<String> testData = FXCollections.observableArrayList();
+        System.out.println("MusicPlayerController initialized with User ID: " + userId);
 
         // Wait until the scene is set before accessing its window
         if (FrameMusicPlayer != null && FrameMusicPlayer.getScene() != null) {
@@ -331,80 +350,88 @@ public class MusicPlayerController {
     }
 
     void playStreamUrl(String streamUrl) {
-        // Stop the previous playback, if any
-        if (mediaPlayer != null && mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
-            mediaPlayer.stop();
+        if (streamUrl == null || streamUrl.isEmpty()) {
+            showPopupMessage("Invalid stream URL.");
+            return;
         }
 
-        // Create a new Media object with the stream URL
-        this.currentStreamUrl = streamUrl;
-        Media media = new Media(streamUrl);
-        mediaPlayer = new MediaPlayer(media);
-
-        // When the mediaPlayer is ready to play, start playback immediately
-        mediaPlayer.setOnReady(() -> {
-            mediaPlayer.seek(Duration.ZERO); // Ensure the song starts from the beginning
-            mediaPlayer.play(); // Start playback
-
-            // Extract song name from the URL (or metadata if available)
-            String songTitle = extractSongNameFromUrl(streamUrl);
-            song_name.setText(songTitle); // Display only the song name
-
-            // Set slider maximum value to the song's duration
-            slide_song.setMax(media.getDuration().toSeconds());
-            vol_slide.setValue(50); // Set initial volume to 50%
-            slide_song.setValue(0); // Start the slider at 0
-
-            // Update the song's duration display
-            start_time.setText(formatTime(Duration.ZERO));
-            end_time.setText(formatTime(media.getDuration()));
-        });
-
-        // Bind the slider to the song's current playback time
-        mediaPlayer.currentTimeProperty().addListener((observable, oldTime, newTime) -> {
-            slide_song.setValue(newTime.toSeconds());
-            start_time.setText(formatTime(newTime)); // Update start time as the song plays
-        });
-
-        // Configure Play/Pause button
-        play_button.setText("Pause");
-        play_button.setOnAction(event -> {
-            if (mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
-                mediaPlayer.pause();
-                play_button.setText("Play");
-            } else {
-                mediaPlayer.play();
-                play_button.setText("Pause");
+        try {
+            // Σταμάτα την προηγούμενη αναπαραγωγή
+            if (mediaPlayer != null && mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
+                mediaPlayer.stop();
             }
-        });
 
-        // Configure the volume slider
-        vol_slide.valueProperty().addListener((observable, oldValue, newValue) -> {
-            mediaPlayer.setVolume(newValue.doubleValue() / 100.0); // Convert volume to 0.0–1.0 range
-        });
+            this.currentStreamUrl = streamUrl;  // Αποθήκευση της νέας URL ροής
+            Media media = new Media(streamUrl);  // Δημιουργία του media αντικειμένου με την URL του ρεύματος
+            mediaPlayer = new MediaPlayer(media);
 
-        // Allow user to seek through the song using the slider
-        slide_song.setOnMousePressed(event -> mediaPlayer.seek(Duration.seconds(slide_song.getValue())));
-        slide_song.setOnMouseDragged(event -> mediaPlayer.seek(Duration.seconds(slide_song.getValue())));
+            mediaPlayer.setOnReady(() -> {
+                mediaPlayer.seek(Duration.ZERO);
+                mediaPlayer.play();
 
-        // Reset playback state when the song finishes
-        mediaPlayer.setOnEndOfMedia(() -> {
-            play_button.setText("Play"); // Reset the Play button text
-            slide_song.setValue(0); // Reset the slider
-            start_time.setText(formatTime(Duration.ZERO)); // Reset the start time
-        });
+                // Εξαγωγή του ονόματος του τραγουδιού και ενημέρωση του Label song_name
+                // Το όνομα του τραγουδιού έχει ήδη οριστεί από τη λίστα και παραμένει σταθερό
+                String songTitle = extractSongNameFromUrl(streamUrl);  // Εξαγωγή του τίτλου από το URL
+
+                // song_name.setText(songTitle);  // Δεν χρειάζεται, το όνομα είναι ήδη ορισμένο
+                slide_song.setMax(media.getDuration().toSeconds());
+                vol_slide.setValue(50);
+                slide_song.setValue(0);
+
+                start_time.setText(formatTime(Duration.ZERO));
+                end_time.setText(formatTime(media.getDuration()));
+            });
+
+            mediaPlayer.currentTimeProperty().addListener((observable, oldTime, newTime) -> {
+                slide_song.setValue(newTime.toSeconds());
+                start_time.setText(formatTime(newTime));
+
+                // Το όνομα του τραγουδιού δεν αλλάζει κατά τη διάρκεια της αναπαραγωγής
+            });
+            play_button.setText("Pause");
+            play_button.setOnAction(event -> {
+                if (mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
+                    mediaPlayer.pause();
+                    play_button.setText("Play");
+                } else {
+                    mediaPlayer.play();
+                    play_button.setText("Pause");
+                }
+            });
+
+            vol_slide.valueProperty().addListener((observable, oldValue, newValue) -> {
+                mediaPlayer.setVolume(newValue.doubleValue() / 100.0);
+            });
+
+            slide_song.setOnMousePressed(event -> mediaPlayer.seek(Duration.seconds(slide_song.getValue())));
+            slide_song.setOnMouseDragged(event -> mediaPlayer.seek(Duration.seconds(slide_song.getValue())));
+
+            mediaPlayer.setOnEndOfMedia(() -> {
+                play_button.setText("Play");
+                slide_song.setValue(0);
+                start_time.setText(formatTime(Duration.ZERO));
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            showPopupMessage("Error playing stream: " + e.getMessage());
+        }
     }
 
     //Method to extract song name from URL
     private String extractSongNameFromUrl(String url) {
-        // Check if the URL has a query string, and extract the file name accordingly
-        String songTitle = url.substring(url.lastIndexOf("/") + 1); // Get the part after the last "/"
+        // Get the part of the URL after the last "/"
+        String songTitle = url.substring(url.lastIndexOf("/") + 1);  // Get the part after the last "/"
         int queryIndex = songTitle.indexOf("?");
         if (queryIndex != -1) {
-            songTitle = songTitle.substring(0, queryIndex); // Remove any query parameters
+            songTitle = songTitle.substring(0, queryIndex);  // Remove query parameters
         }
+
+        // Remove the word "stream" if it exists in the song name
+        songTitle = songTitle.replace("stream", "").trim();  // Remove "stream" and trim extra spaces
+
         return songTitle;
     }
+
 
     // Μέθοδος για να φορμάρουμε την ώρα
     private String formatTime(Duration duration) {
@@ -806,7 +833,9 @@ public class MusicPlayerController {
                 resultsList.getSelectionModel().select(currentIndex + 1);
                 ItemInfo nextItemInfo = trackMap.get(nextItem);
                 if (nextItemInfo != null && "track".equals(nextItemInfo.getType())) {
-                    playStreamUrl(nextItemInfo.getTrackUrl()); // Παίξε το επόμενο τραγούδι
+                    // Παίξε το επόμενο τραγούδι
+                    playStreamUrl(nextItemInfo.getTrackUrl());
+                    song_name.setText(nextItem); // Ενημέρωσε το όνομα του τραγουδιού
                 }
             }
         }
@@ -825,7 +854,9 @@ public class MusicPlayerController {
                 resultsList.getSelectionModel().select(currentIndex - 1);
                 ItemInfo previousItemInfo = trackMap.get(previousItem);
                 if (previousItemInfo != null && "track".equals(previousItemInfo.getType())) {
-                    playStreamUrl(previousItemInfo.getTrackUrl()); // Παίξε το προηγούμενο τραγούδι
+                    // Παίξε το προηγούμενο τραγούδι
+                    playStreamUrl(previousItemInfo.getTrackUrl());
+                    song_name.setText(previousItem); // Ενημέρωσε το όνομα του τραγουδιού
                 }
             }
         }
@@ -873,7 +904,7 @@ public class MusicPlayerController {
 
     //ETHO THA KANETE NA EMFANIZONTE TA PLAYLIST APO TO DATABASE
     public void show_playlists(ActionEvent actionEvent) {
-        // Create a VBox to hold the title and an empty list view for playlists
+        // Create a VBox to hold the title and an empty list view
         VBox content = new VBox();
         content.setSpacing(20);
         content.setPadding(new Insets(20));
@@ -882,16 +913,64 @@ public class MusicPlayerController {
         content.setBackground(new Background(new BackgroundFill(Color.web("#1F5F5B"), CornerRadii.EMPTY, Insets.EMPTY)));
 
         // Add a title label with white text
-        Label titleLabel = new Label("My Playlists");
+        Label titleLabel = new Label("My Playlist");
         titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-font-family: 'Arial'; -fx-text-fill: white;");
 
-        // Create an empty ListView to display a placeholder for playlists
-        ListView<String> playlistsListView = new ListView<>();
-        playlistsListView.setPlaceholder(new Label("No playlists available"));
-        playlistsListView.setPrefHeight(200); // Set preferred height for the list view
+        // Create a VBox to display liked songs with buttons
+        VBox songsContainer = new VBox(10); // Spacing of 10 between songs
+        songsContainer.setPadding(new Insets(10));
 
-        // Add the title and list view to the VBox
-        content.getChildren().addAll(titleLabel, playlistsListView);
+        // Fetch the liked songs for the logged-in user from the database
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String query = "SELECT song_id FROM playlist WHERE user_id = ?";
+            PreparedStatement stmt = conn.prepareStatement(query);
+
+            // Replace with the actual logged-in user ID
+            int userId = LoginController.currentUserId;
+            stmt.setInt(1, userId);
+
+            ResultSet rs = stmt.executeQuery();
+
+
+            while (rs.next()) {
+                String songUrl = rs.getString("song_id");
+                ItemInfo selectedItemInfo = trackMap.get(songUrl);
+                String songName = (selectedItemInfo != null) ? selectedItemInfo.getId() : "Unknown Song";
+
+                // Create a HBox to display the song name and a "Remove" button
+                HBox songRow = new HBox(10); // Spacing of 10 between song name and button
+                songRow.setAlignment(Pos.CENTER_LEFT);
+
+
+
+
+
+                // Create a label for the song name
+                Label songLabel = new Label(songName);
+                songLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: white;");
+
+                // Create a "Remove" button
+                Button removeButton = new Button("Remove");
+                removeButton.setStyle("-fx-background-color: #FF4C4C; -fx-text-fill: white; -fx-font-weight: bold;");
+
+                // Add an action to the "Remove" button
+                removeButton.setOnAction(event -> {
+                    removePlaylistSong(userId, songUrl);
+                    songsContainer.getChildren().remove(songRow); // Remove the row from the UI
+                });
+
+                // Add the song name and button to the HBox
+                songRow.getChildren().addAll(songLabel, removeButton);
+
+                // Add the HBox to the songs container
+                songsContainer.getChildren().add(songRow);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Add the title and songs container to the VBox
+        content.getChildren().addAll(titleLabel, songsContainer);
 
         // Stretch the VBox to fill the center pane
         content.setPrefSize(center_pane.getWidth(), center_pane.getHeight());
@@ -906,6 +985,8 @@ public class MusicPlayerController {
         fadeIn.setToValue(1);
         fadeIn.play();
     }
+
+
 
 
     //ETHO THA KANETE NA EMFANIZONTE TA LIKED SONGS APO TO DATABASE
@@ -919,16 +1000,64 @@ public class MusicPlayerController {
         content.setBackground(new Background(new BackgroundFill(Color.web("#1F5F5B"), CornerRadii.EMPTY, Insets.EMPTY)));
 
         // Add a title label with white text
-        Label titleLabel = new Label("My Like Songs");
+        Label titleLabel = new Label("My Liked Songs");
         titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-font-family: 'Arial'; -fx-text-fill: white;");
 
-        // Create an empty ListView to display a placeholder for liked songs
-        ListView<String> songsListView = new ListView<>();
-        songsListView.setPlaceholder(new Label("No liked songs yet"));
-        songsListView.setPrefHeight(200); // Set preferred height for the list view
+        // Create a VBox to display liked songs with buttons
+        VBox songsContainer = new VBox(10); // Spacing of 10 between songs
+        songsContainer.setPadding(new Insets(10));
 
-        // Add the title and list view to the VBox
-        content.getChildren().addAll(titleLabel, songsListView);
+        // Fetch the liked songs for the logged-in user from the database
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String query = "SELECT song_id FROM liked_songs WHERE user_id = ?";
+            PreparedStatement stmt = conn.prepareStatement(query);
+
+            // Replace with the actual logged-in user ID
+            int userId = LoginController.currentUserId;
+            stmt.setInt(1, userId);
+
+            ResultSet rs = stmt.executeQuery();
+
+
+            while (rs.next()) {
+                String songUrl = rs.getString("song_id");
+                ItemInfo selectedItemInfo = trackMap.get(songUrl);
+                String songName = (selectedItemInfo != null) ? selectedItemInfo.getId() : "Unknown Song";
+
+                // Create a HBox to display the song name and a "Remove" button
+                HBox songRow = new HBox(10); // Spacing of 10 between song name and button
+                songRow.setAlignment(Pos.CENTER_LEFT);
+
+
+
+
+
+                // Create a label for the song name
+                Label songLabel = new Label(songName);
+                songLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: white;");
+
+                // Create a "Remove" button
+                Button removeButton = new Button("Remove");
+                removeButton.setStyle("-fx-background-color: #FF4C4C; -fx-text-fill: white; -fx-font-weight: bold;");
+
+                // Add an action to the "Remove" button
+                removeButton.setOnAction(event -> {
+                    removeLikedSong(userId, songUrl);
+                    songsContainer.getChildren().remove(songRow); // Remove the row from the UI
+                });
+
+                // Add the song name and button to the HBox
+                songRow.getChildren().addAll(songLabel, removeButton);
+
+                // Add the HBox to the songs container
+                songsContainer.getChildren().add(songRow);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Add the title and songs container to the VBox
+        content.getChildren().addAll(titleLabel, songsContainer);
 
         // Stretch the VBox to fill the center pane
         content.setPrefSize(center_pane.getWidth(), center_pane.getHeight());
@@ -945,17 +1074,162 @@ public class MusicPlayerController {
     }
 
 
+    private void removeLikedSong(int userId, String songId) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String query = "DELETE FROM liked_songs WHERE user_id = ? AND song_id = ?";
+            PreparedStatement stmt = conn.prepareStatement(query);
+            stmt.setInt(1, userId);
+            stmt.setString(2, songId);
+
+            int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Song removed from liked songs: " + songId);
+            } else {
+                System.out.println("No matching song found to remove: " + songId);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    private void removePlaylistSong(int userId, String songId) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String query = "DELETE FROM playlist WHERE user_id = ? AND song_id = ?";
+            PreparedStatement stmt = conn.prepareStatement(query);
+            stmt.setInt(1, userId);
+            stmt.setString(2, songId);
+
+            int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Song removed from liked songs: " + songId);
+            } else {
+                System.out.println("No matching song found to remove: " + songId);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private ObservableList<String> returnSavedSongsToUi(int userId) {
+        ObservableList<String> likedSongs = FXCollections.observableArrayList();
+
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String query = "SELECT song_id FROM liked_songs WHERE user_id = ?";
+            PreparedStatement stmt = conn.prepareStatement(query);
+            stmt.setInt(1, userId);
+
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                likedSongs.add(rs.getString("song_id"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return likedSongs;
+    }
+
+
+    void savePlaylistToDatabase(int userId, String songId) {
+        String query = "INSERT INTO playlist (user_id, song_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE liked_at = CURRENT_TIMESTAMP";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query))  {
+            stmt.setInt(1, userId);
+            stmt.setString(2, songId);
+            stmt.executeUpdate();
+            System.out.println("Liked song saved to database for user ID: " + userId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+    void saveLikedSongToDatabase(int userId, String songId) {
+        String query = "INSERT INTO liked_songs (user_id, song_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE liked_at = CURRENT_TIMESTAMP";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query))  {
+            stmt.setInt(1, userId);
+            stmt.setString(2, songId);
+            stmt.executeUpdate();
+            System.out.println("Liked song saved to database for user ID: " + userId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     //ETHO THA KANEIS NA PROSTHETETE TO TRAGOUTHI APO TO MEDIA STA LIKED SONGS me database
     public void Add_to_love(ActionEvent actionEvent) {
+
+        System.out.println("Current Stream URL: " + currentStreamUrl);
+        int userId = LoginController.currentUserId;
+        System.out.println("Current User ID: " + userId);
+
+        if (userId == -1){
+            System.out.println("Errror:User ID is invalid!");
+            return;
+        }
+
+        if (currentStreamUrl == null) {
+            System.out.println("Error: currentStreamUrl is null!");
+            return;
+        }
+
+
+
+        if (userId != -1) {
+            System.out.println("User logged in successfully with ID: " + userId);
+
+            if (currentStreamUrl != null ) {
+
+                saveLikedSongToDatabase(userId, currentStreamUrl);
+            }
+            else {
+                System.out.println("No song is currently being streamed.");
+            }
+        } else {
+            System.out.println("User ID is invalid.");
+        }
     }
 
     //ETHO NA PROSTHETETE APO TO MEDIA STO MY  PLAYLIS  me database
     public void ADD_to_playlist(ActionEvent actionEvent) {
+
+        System.out.println("Current Stream URL: " + currentStreamUrl);
+        int userId = LoginController.currentUserId;
+        System.out.println("Current User ID: " + userId);
+
+        if (userId == -1){
+            System.out.println("Errror:User ID is invalid!");
+            return;
+        }
+
+        if (currentStreamUrl == null) {
+            System.out.println("Error: currentStreamUrl is null!");
+            return;
+        }
+
+
+
+        if (userId != -1) {
+            System.out.println("User logged in successfully with ID: " + userId);
+
+            if (currentStreamUrl != null ) {
+
+                savePlaylistToDatabase(userId, currentStreamUrl);
+            }
+            else {
+                System.out.println("No song is currently being streamed.");
+            }
+        } else {
+            System.out.println("User ID is invalid.");
+        }
     }
 
 
     public static class ItemInfo {
+        public  String streamUrl;
         private String id;
         private String type;
         private String cid;
@@ -971,7 +1245,10 @@ public class MusicPlayerController {
         public String getType() { return type; }
         public String getCid() { return cid; }
         public String getTrackUrl() { return trackUrl; }
+
+
     }
+
 
     private String buildDisplayText(String mode, JSONObject item) {
         return switch (mode) {

@@ -14,6 +14,15 @@ public class MainApp extends Application {
         this.primaryStage = primaryStage;
         showLoginPage(); // Start with the login page
     }
+    private int currentUserId;
+
+    public void setCurrentUserId(int userId) {
+        this.currentUserId = userId;
+    }
+
+    public int getCurrentUserId() {
+        return currentUserId;
+    }
 
     // Display the Login Page
     public void showLoginPage() throws Exception {

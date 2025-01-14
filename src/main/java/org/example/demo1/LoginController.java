@@ -18,6 +18,7 @@ public class LoginController {
     @FXML private Button create_account_Login;
     @FXML public CheckBox check_pass_Login;
     @FXML public Label error_login;
+    public static int currentUserId ;
 
     private MainApp mainApp;
     private Map<String, String> users = new HashMap<>();
@@ -32,14 +33,22 @@ public class LoginController {
         String username = TextField_Username.getText();
         String password = check_pass_Login.isSelected() ? visible_pass_Login.getText() : text_pass_Login.getText();
 
+
         // Debugging: Print to console
         System.out.println("Entered Username: " + username);
         System.out.println("Entered Password: " + password);
 
-        // Validate credentials
-        if (isValidCredentials(username, password)) {
+        int userId = isValidCredentials(username, password);
+        if (userId != -1) {
+            currentUserId = userId;
+            mainApp.setCurrentUserId(userId);
             try {
-                mainApp.showMusicPlayerPage(); // Navigate to music player
+                System.out.println("User logged in successfully with ID: " + userId);
+                error_login.setText("Welcome! Your User ID: " + userId);
+
+
+
+                mainApp.showMusicPlayerPage();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -74,17 +83,21 @@ public class LoginController {
     }
 
     @FXML
-    public boolean isValidCredentials(String username, String password) {
-        String query = "SELECT * FROM users WHERE username = ? AND password = ?";
+    public int isValidCredentials(String username, String password) {
+        String query = "SELECT * FROM users WHERE username = ? AND password = ? ";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, username);
             stmt.setString(2, password);
+
             ResultSet rs = stmt.executeQuery();
-            return rs.next(); // Επιστρέφει true αν βρεθεί το username και password
+            if (rs.next()) {
+                return rs.getInt("id");
+            }
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
         }
+        return -1 ;
+
     }
 }
